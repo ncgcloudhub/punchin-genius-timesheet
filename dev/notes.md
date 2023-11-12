@@ -158,3 +158,51 @@ Absolutely, the main page (often referred to as the dashboard) should provide us
     - If there are any updates or news related to the app or company, display them in a small section on the dashboard. This can include new feature releases, maintenance schedules, or company news.
 
 Remember, the key to a good dashboard is not to overwhelm the user with information but to provide a clear, concise view of the most critical and frequently accessed data. The design should be intuitive, and the user shouldn't have to hunt for information. Always consider user feedback when designing or updating the dashboard, as it can provide valuable insights into what users find most helpful.
+
+
+#user: saiful  & saifuladmin
+# gui   #pw: TimeSheet@2023
+#sql:
+#new_user = User(username="admin", password="Bhu!@V3nd0rTimesheet", email="saif.taxpro@outlook.com", is_admin=True)
+
+# Run PostgreSQL Container:
+# Open a command prompt or terminal.
+# Run the following command to start a PostgreSQL container:
+docker run --name postgres -e POSTGRES_PASSWORD=TimeSheet@2023 -p 5432:5432 -d postgres
+
+
+Here is what you can try next:
+
+Double-check the SQL file: Open timesheet_migration.sql and verify that it exactly matches the code you've posted here, including the COMMIT; statement at the end (make sure it's COMMIT;, not Commit).
+
+Copy the SQL file to your Docker container again: Use the following command to copy the file into the Docker container, making sure you're in the directory where timesheet_migration.sql is located or provide the full path to the file:
+
+bash
+Copy code
+# docker cp timesheet_migration.sql postgres:/timesheet_migration.sql
+Run the SQL file within your Docker container: Use this command to execute the script in PostgreSQL:
+
+bash
+Copy code
+# docker exec -it postgres psql -U postgres -d timesheet_db -f /timesheet_migration.sql
+Verify the changes: After running the script, connect to the PostgreSQL database and list all tables:
+
+bash
+Copy code
+# docker exec -it postgres psql -U postgres -d timesheet_db
+# \dt
+Check the data: If the tables are listed, check the contents to verify the data:
+
+sql
+Copy code
+# SELECT * FROM "user";
+# SELECT * FROM time_entry;
+# \q
+If the tables still aren't showing up, this might indicate an issue with either the Doc
+
+
+Here's how you can restore the database from a backup:
+
+bash
+Copy code
+# docker exec -i postgres psql -U postgres -d new_timesheet_db < backup.sql

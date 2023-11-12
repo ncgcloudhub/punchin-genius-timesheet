@@ -757,9 +757,4 @@ def get_monthly_hours_for_all_users():
 if __name__ == '__main__':
     app.run(debug=True)
 
-#user: saiful  & saifuladmin
-# gui   #pw: TimeSheet@2023
-#sql:
-#new_user = User(username="admin", password="Bhu!@V3nd0rTimesheet", email="saif.taxpro@outlook.com", is_admin=True)
-
 print(app.instance_path)
