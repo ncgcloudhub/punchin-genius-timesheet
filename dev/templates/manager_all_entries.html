@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>All Employee Time Entries</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Employee</th>
+            <th>Date</th>
+            <th>Sign In Time</th>
+            <th>Sign Out Time</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in entries %}
+        <tr>
+            <td>{{ entry.user.username }}</td>
+            <td>{{ entry.date }}</td>
+            <td>{{ entry.sign_in_time }}</td>
+            <td>{{ entry.sign_out_time }}</td>
+            <td><a href="{{ url_for('edit_time_entry', entry_id=entry.id) }}">Edit</a></td>
+            <td><a href="{{ url_for('delete_time_entry', entry_id=entry.id) }}">Delete</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block styles %}
+<style>
+    /* Add any additional styles here */
+    .centered-content {
+        margin: auto;
+        width: 80%;
+        padding: 10px;
+    }
+    .centered-buttons a {
+        margin-right: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="centered-content">
+    <h3>Welcome to our Time Tracking App</h3>
+
+    {% if not current_user.is_authenticated %}
+    <p>If you don't have an account, please <a href="{{ url_for('register') }}" class="btn btn-primary">Register</a> to create an account.</p>
+    <div class="centered-buttons">
+        <a href="{{ url_for('login') }}" class="btn-login">Login</a>
+        <a href="{{ url_for('register') }}" class="btn-register">Register</a>
+    </div>
+    {% else %}
+    <p>Welcome back, {{ current_user.first_name }}!</p>
+    <!-- NEW: GPT-4 Interaction Section -->
+<!-- GPT-4 Interaction Section with Hints -->
+<div class="chat-container">
+    <div class="gpt-messages">
+        <!-- User and bot messages will be appended here -->
+    </div>
+    <div class="gpt-input">
+        <input type="text" id="time_command" name="time_command" placeholder="Enter your time command...">
+        <button onclick="submitTimeCommand()">Submit</button>
+    </div>
+</div>
+<div class="hints-container">
+    <div class="hints">
+        <p>Examples of commands you can input:</p>
+        <ul>
+            <li>Start work at 8:30 AM</li>
+            <li>Clock out at 5 PM</li>
+            <li>Clock in at 9 AM</li>
+            <li>Finish work now</li>
+            <li>I started work at 10:15 AM</li>
+            <li>Begin my day at 7:30 AM</li>
+            <li>I'm done for the day at 6 PM</li>
+            <li>End my shift at 5:45 PM</li>
+            <!-- ... other examples ... -->
+        </ul>
+    </div>
+</div>
+
+
+    <button class="btn btn-info" type="button" data-toggle="collapse" data-target="#timeEntries" aria-expanded="false" aria-controls="timeEntries">
+        Toggle Your Time Entries
+    </button>
+    <div class="collapse show" id="timeEntries">
+        <div class="card card-body">
+            <!-- Display the time entries -->
+            <h3>Your Time Entries</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Sign In Time</th>
+                        <th>Sign Out Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in time_entries %}
+                    <tr>
+                        <td>{{ entry.day_of_week }} {{ entry.date.strftime('%m/%d/%Y') }}</td>
+                        <td>{{ entry.sign_in_time.strftime('%I:%M %p') }}</td>
+                        <td>
+                            {% if entry.sign_out_time %}
+                                {{ entry.sign_out_time.strftime('%I:%M %p') }}
+                            {% else %}
+                            <button onclick="openModal({{ entry.id }})" class="clock-out-button">Clock Out</button>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('edit_time_entry', entry_id=entry.id) }}" class="button-edit"">Edit</a>
+                            <form action="{{ url_for('delete_time_entry', entry_id=entry.id) }}" method="post" style="display:inline;">
+                                <input type="text" name="delete_reason" placeholder="Reason for deletion" required>
+                                <input type="submit" class="button-danger" value="Delete" onclick="return confirm('Are you sure?');">
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+<!-- GPT command JS script -->
+<script src="{{ url_for('static', filename='js/gptcommandsubmit.js') }}"></script>
+{% endblock %}

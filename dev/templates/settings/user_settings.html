@@ -1,0 +1,21 @@
+<!-- settings/templates/user_settings.html -->
+<!-- templates/settings/user_settings.html -->
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>User Settings</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.user_name.label }}<br>
+            {{ form.user_name(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.email.label }}<br>
+            {{ form.email(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+{% endblock %}

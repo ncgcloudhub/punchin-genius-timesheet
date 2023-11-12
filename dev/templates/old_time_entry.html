@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Time Entry</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container mt-5">
+    <h2>Enter Your Time</h2>
+    <form action="/add_time_entry" method="post">
+        <div class="form-group">
+            <label for="entryDate">Date:</label>
+            <input type="date" class="form-control" id="entryDate" name="entry_date" required>
+        </div>
+        <div class="form-group">
+            <label for="signInTime">Sign In Time:</label>
+            <input type="time" class="form-control" id="signInTime" name="sign_in_time" required>
+        </div>
+        <div class="form-group">
+            <label for="signOutTime">Sign Out Time:</label>
+            <input type="time" class="form-control" id="signOutTime" name="sign_out_time" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+</body>
+</html>

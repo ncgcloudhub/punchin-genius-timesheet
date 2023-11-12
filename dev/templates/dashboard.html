@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %} Dashboard - TimeSheet App {% endblock %}
+
+{% block content %}
+    <h1 class="elegant-heading">Welcome, {{ current_user.username }}</h1>
+    
+<!-- NEW: GPT-4 Interaction Section -->
+<!-- GPT-4 Interaction Section with Hints -->
+<div class="chat-container">
+    <div class="gpt-messages">
+        <!-- User and bot messages will be appended here -->
+    </div>
+    <div class="gpt-input">
+        <input type="text" id="time_command" name="time_command" placeholder="Enter your time command...">
+        <button onclick="submitTimeCommand()">Submit</button>
+    </div>
+</div>
+<div class="hints-container">
+    <div class="hints">
+        <p>Examples of commands you can input:</p>
+        <ul>
+            <li>Start work at 8:30 AM</li>
+            <li>Clock out at 5 PM</li>
+            <li>Clock in at 9 AM</li>
+            <li>Finish work now</li>
+            <li>I started work at 10:15 AM</li>
+            <li>Begin my day at 7:30 AM</li>
+            <li>I'm done for the day at 6 PM</li>
+            <li>End my shift at 5:45 PM</li>
+            <!-- ... other examples ... -->
+        </ul>
+    </div>
+</div>
+<!-- Begin Active Ession-->
+<h3 class="elegant-heading">Active Session</h3>
+<div class="content"  style="display: block;">
+    <table border="1" class="centered-content">
+        <thead>
+            <tr>
+                <th>Days</th>
+                <th>Date</th>
+                <th>Sign In Time</th>
+                <th>Sign Out Time</th>
+                <th>Total Hours Worked</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if active_entry %}
+                <tr>
+                    <td>{{ active_entry.day_of_week }}</td>
+                    <td>{{ active_entry.date.strftime('%m/%d/%Y') }}</td>
+                    <td>{{ active_entry.sign_in_time.strftime('%I:%M %p') }}</td>
+                    <td><button onclick="openModal({{ active_entry.id }})" class="clock-out-button">Clock Out</button></td>
+                    <td>{{ "{:02d}".format(active_entry.total_hours) }}:{{ "{:02d}".format(active_entry.total_minutes) }} hours</td>
+                    <td>
+                        <a href="{{ url_for('edit_time_entry', entry_id=active_entry.id) }}" class="button-edit">Edit</a> |
+                        <form action="{{ url_for('delete_time_entry', entry_id=active_entry.id) }}" method="post" style="display:inline;">
+                            <input type="text" name="delete_reason" placeholder="Reason for deletion" required>
+                            <input type="submit" value="Delete" class="button-danger" onclick="return confirm('Are you sure?')">
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6">No active session found.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div><!-- end of Active Ession-->
+<hr>
+
+<h3 class="elegant-heading collapsible">Enter Your Time Manually</h3>
+<div class="content">
+    <!-- Clock In Form -->
+    <form action="{{ url_for('clock_in') }}" method="post" class="centered-content">
+        <h4>Clock In</h4>
+        <label for="clockInDate">Date:</label>
+        <input type="date" class="form-control" id="clockInDate" name="entry_date" required value="{{ default_date }}">
+        <label for="clockInTime">Time:</label>
+        <input type="time" class="form-control" id="clockInTime" name="sign_in_time" required>
+        <button type="submit" class="button-submit">Clock In</button>
+    </form>
+
+    <hr>
+
+    <!-- Clock Out Form -->
+    <form action="{{ url_for('clock_out') }}" method="post" class="centered-content">
+        <h4>Clock Out</h4>
+        <label for="clockOutDate">Date:</label>
+        <input type="date" class="form-control" id="clockOutDate" name="entry_date" required value="{{ default_date }}">
+        <label for="clockOutTime">Time:</label>
+        <input type="time" class="form-control" id="clockOutTime" name="sign_out_time" required>
+        <button type="submit" class="button-submit">Clock Out</button>
+    </form>
+</div>
+    <hr>
+<!-- Your existing logic for displaying the weeks starts here -->
+    <h3 class="elegant-heading collapsible">View Your Weekly Timesheet</h3>
+    <div class="content"> <!-- This div wraps all the weeks' data -->
+        {% for sunday, entries in entries_by_week|dictsort(by='key', reverse=True) %}
+        <h4 class="sub-elegant-heading collapsible">Week of {{ sunday.strftime('%m/%d/%Y') }}</h4>
+        <div class="content">
+        <table border="1" class="centered-content">
+            <thead>
+                <tr>
+                    <th>Days</th>
+                    <th>Date</th>
+                    <th>Sign In Time</th>
+                    <th>Sign Out Time</th>
+                    <th>Total Hours Worked</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                <tr>
+                    <td>{{ entry.day_of_week }}</td>
+                    <td>{{ entry.date.strftime('%m/%d/%Y') }}</td>
+                    <td>{{ entry.sign_in_time.strftime('%I:%M %p') }}</td>
+                    <td>
+                        {% if entry.sign_out_time %}
+                            {{ entry.sign_out_time.strftime('%I:%M %p') }}
+                        {% else %}
+                        <button onclick="openModal({{ entry.id }})" class="clock-out-button">Clock Out</button>
+                        {% endif %}
+                    </td>
+                   <td>
+                    {{ "{:02d}".format(entry.total_hours) }}:{{ "{:02d}".format(entry.total_minutes) }} hours
+                    </td>
+                    <td>
+                        <a href="{{ url_for('edit_time_entry', entry_id=entry.id) }}" class="button-edit">Edit</a> |
+                        <form action="{{ url_for('delete_time_entry', entry_id=entry.id) }}" method="post" style="display:inline;">
+                            <input type="text" name="delete_reason" placeholder="Reason for deletion" required>
+                            <input type="submit" value="Delete" class="button-danger" onclick="return confirm('Are you sure?')">
+                        </form>
+                    </td>                    
+                </tr>
+                {% endfor %}
+            </tbody> 
+            
+             
+        </table>
+        <p><strong>Total Hours Worked This Week:</strong> 
+            {% set hours, minutes = weekly_totals[sunday] %}
+            {{ hours }}:{{ minutes|zfill }} hours
+         </p>
+        </div> <!-- End of the individual week's collapsible content DIV -->
+        <hr>
+    {% endfor %}
+    </div> <!-- End of the main content div -->
+    <h3 class="sub-elegant-heading centered-form">Total Hours Worked This Month: {{ monthly_total_hours }} hours {{ monthly_total_minutes }} minutes</h3>
+    <hr>
+    <!-- Detect an active session -->
+    {% if request.args.get('alert') %}
+    <script>
+        window.onload = function() {
+            document.getElementById('alertModal').style.display = 'block';
+        }
+    </script>
+    {% endif %}
+  
+
+    <!-- GPT command JS script -->
+<script src="{{ url_for('static', filename='js/gptcommandsubmit.js') }}"></script>
+  <!--- Alert mesage Customization -->
+    <!-- Custom Alert Modal -->
+    <div id="alertModal" class="alert-modal">
+        <div class="alert-modal-content">
+            <span class="alert-modal-close">&times;</span>
+            <p>You're already clocked in. Please clock out first before clocking in again.</p>
+        </div>
+    </div>
+<script>
+    // Get the modal and close button
+    var modal = document.getElementById('alertModal');
+    var span = document.getElementsByClassName("alert-modal-close")[0];
+
+    // When the user clicks on the close button, close the modal
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+
+{% endblock %}
