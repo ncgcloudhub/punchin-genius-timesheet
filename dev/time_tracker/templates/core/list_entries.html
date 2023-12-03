@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Time Entries</title>
+</head>
+<body>
+    <h2>Time Entries</h2>
+    <ul>
+        {% for entry in entries %}
+            <li>{{ entry.clock_in_time }} - {{ entry.clock_out_time }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
