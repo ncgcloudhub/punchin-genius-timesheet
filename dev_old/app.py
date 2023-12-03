@@ -15,42 +15,44 @@ import openai
 import re
 import logging
 import os
+from .instance.config import Config
+import sys
+from dotenv import load_dotenv
 
 
-# Define the path to the instance folder explicitly
-instance_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
+load_dotenv()  # This line will load the .env file's contents into environment variables
+print(f"Database URL: {os.getenv('DATABASE_URL')}")
 
-# Initialize the Flask app with instance configuration enabled
-#app = Flask(__name__, instance_relative_config=True)
-app = Flask(__name__, instance_path=instance_path, instance_relative_config=True)
-# Load configurations from the instance folder
-app.config.from_pyfile('dev_config.py')
+# Initialize Flask application
+app = Flask(__name__)
+# Load configurations from instance/config.py if available
+# Ensure instance/config.py contains a class Config with appropriate settings
+app.config.from_pyfile('instance/config.py', silent=True)
+# Alternatively, if you want to use the Config class directly:
+# from instance.config import Config
+# app.config.from_object(Config)
 
 
-from profile import profile as profile_blueprint
-app.register_blueprint(profile_blueprint, url_prefix='/profile')
+# Load additional configurations from environment variables if they exist
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:TimeSheet2023@localhost:5432/timesheet_db')
+app.config['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY', 'default-openai-api-key')
 
-from settings import settings as settings_blueprint
+
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+from .user_profile import profile as profile_blueprint
+app.register_blueprint(profile_blueprint, url_prefix='/user_profile')
+
+from .settings import settings as settings_blueprint
 app.register_blueprint(settings_blueprint, url_prefix='/settings')
-
-
 
 logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s')
 
 
-# Set up the OpenAI API key using the loaded configuration
-openai.api_key = app.config['OPENAI_API_KEY']
-
-db = SQLAlchemy(app)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///timesheet.db'
-#app.config['SECRET_KEY'] = 'your_secret_key_here'  # Add this line
-
-
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-
-migrate = Migrate(app, db)
 
 class TimeEntryForm(FlaskForm):
     entry_date = DateField('Date', validators=[DataRequired()])
@@ -58,16 +60,29 @@ class TimeEntryForm(FlaskForm):
     sign_out_time = TimeField('Sign Out Time', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(80), nullable=False)
     last_name = db.Column(db.String(80), nullable=False)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(120), nullable=False)
+    _password_hash = db.Column('password', db.String(255), nullable=False)
     # Roles
     role = db.Column(db.String(20), default="Employee")
-    is_admin = db.Column(db.Boolean, default=False) # for Admin Dashboard
+    is_admin = db.Column(db.Boolean, default=False)  # for Admin Dashboard
     email = db.Column(db.String(120), unique=True, nullable=False)
+
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute')
+
+    @password.setter
+    def password(self, password):
+        self._password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self._password_hash, password)
 
 
 
@@ -371,7 +386,8 @@ def zfill_filter(s):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return db.session.get(User, int(user_id))
+    return User.query.get(int(user_id))
+
 
 
 @app.route('/logout')
