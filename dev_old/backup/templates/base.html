@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Default Title{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <a href="/" class="brand">Timesheet App</a>
+        <button class="hamburger-menu">☰</button>
+        <div class="nav-links">
+            <nav class="clearfix">
+                <div class="user-dropdown">
+    <button class="user-btn">
+        {% if current_user.is_authenticated %}
+            {{ current_user.username }}
+        {% else %}
+            Sign In
+        {% endif %}
+    </button>
+    <div class="dropdown-content">
+        {% if current_user.is_authenticated %}
+            <a href="#">Profile</a>
+            <a href="#">Settings</a>
+            {% if current_user.role == 'Admin' %}
+                <a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+                <a href="{{ url_for('admin_update_roles') }}">Update Roles</a>
+            {% endif %}
+            {% if current_user.role == 'Manager' %}
+                <a href="{{ url_for('manager_dashboard') }}">Manager Dashboard</a>
+            {% endif %}
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('register') }}">Register</a>
+        {% endif %}
+    </div>
+</div>
+
+            </nav>
+                    
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="content-wrap">
+        <!-- Display flashed messages here -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+<!-- Footer -->
+<footer>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        &copy; 2023 Timesheet App. All rights reserved.
+        <div class="custom-clock">
+            <div class="time" id="timeDisplay" style="font-size: 0.8em;"></div>
+            <div class="date" id="dateDisplay" style="font-size: 0.6em;"></div>
+        </div>
+    </div>
+</footer>
+
+
+    <!-- CLOCK -->
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const month = now.toLocaleString('default', { month: 'long' });
+            const day = now.getDate();
+            const year = now.getFullYear();
+
+            document.getElementById('timeDisplay').innerText = `${hours}:${minutes}:${seconds}`;
+            document.getElementById('dateDisplay').innerText = `${month} ${day}, ${year}`;
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();  // Call once to initialize immediately
+    </script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{ url_for('static', filename='js/collapsible.js') }}"></script>
+<script>
+    $(document).ready(function() {
+        $(".hamburger-menu").click(function() {
+            $(".nav-links, .user-dropdown").slideToggle("slow");
+        });
+    });
+</script>
+
+</body>
+</html>

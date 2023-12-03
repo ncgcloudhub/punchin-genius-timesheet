@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %} Dashboard - TimeSheet App {% endblock %}
+
+{% block content %}
+    <h1 class="elegant-heading">Welcome, {{ current_user.username }}</h1>
+    
+    <h3 class="elegant-heading collapsible">Enter Your Time</h3>
+    <div class="content">
+        <form action="{{ url_for('add_time_entry') }}" method="post" class="centered-content">
+            <table class="responsive-table">
+                <tbody>
+                    <tr>
+                        <td><label for="entryDate">Date:</label></td>
+                        <td><input type="date" class="form-control" id="entryDate" name="entry_date" required value="{{ default_date }}"></td>
+                    </tr>
+                    <tr>
+                        <td><label for="signInTime">Sign In Time:</label></td>
+                        <td><input type="time" class="form-control" id="signInTime" name="sign_in_time" required></td>
+                    </tr>
+                    <tr>
+                        <td><label for="signOutTime">Sign Out Time:</label></td>
+                        <td><input type="time" class="form-control" id="signOutTime" name="sign_out_time" required></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="text-align: center;">
+                            <button type="submit" class="button-submit">Submit</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+    <hr>
+    
+    <h3 class="elegant-heading collapsible">View Your Timesheet</h3>
+    <div class="content"> <!-- This div wraps all the weeks' data -->
+    {% for monday, entries in entries_by_week.items() %}
+        <h4 class="sub-elegant-heading collapsible">Week of {{ monday.strftime('%m/%d/%Y') }}</h4>
+        <div class="content">
+        <table border="1" class="centered-content">
+            <thead>
+                <tr>
+                    <th>Days</th>
+                    <th>Date</th>
+                    <th>Sign In Time</th>
+                    <th>Sign Out Time</th>
+                    <th>Total Hours Worked</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                <tr>
+                    <td>{{ entry.day_of_week }}</td>
+                    <td>{{ entry.date.strftime('%m/%d/%Y') }}</td>
+                    <td>{{ entry.sign_in_time.strftime('%I:%M %p') }}</td>
+                    <td>{{ entry.sign_out_time.strftime('%I:%M %p') }}</td>
+                   <td>
+                    {{ "{:02d}".format(entry.total_hours) }}:{{ "{:02d}".format(entry.total_minutes) }} hours
+                    </td>
+                    <td>
+                        <a href="{{ url_for('edit_time_entry', entry_id=entry.id) }}" class="button-edit">Edit</a> |
+                        <form action="{{ url_for('delete_time_entry', entry_id=entry.id) }}" method="post" style="display:inline;">
+                            <input type="text" name="delete_reason" placeholder="Reason for deletion" required>
+                            <input type="submit" value="Delete" class="button-danger" onclick="return confirm('Are you sure?')">
+                        </form>
+                    </td>                    
+                </tr>
+                {% endfor %}
+            </tbody> 
+            
+             
+        </table>
+        <p><strong>Total Hours Worked This Week:</strong> 
+            {% set hours, minutes = weekly_totals[monday] %}
+            {{ hours }}:{{ minutes|zfill }} hours
+         </p>
+        </div> <!-- End of the individual week's collapsible content DIV -->
+        <hr>
+    {% endfor %}
+    </div> <!-- End of the main content div -->
+    <h3 class="sub-elegant-heading centered-form">Total Hours Worked This Month: {{ monthly_total_hours }} hours {{ monthly_total_minutes }} minutes</h3>
+    <hr>
+{% endblock %}
