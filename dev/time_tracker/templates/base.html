@@ -9,6 +9,7 @@
     <title>{% block title %}Punchin Genius Time Tracker{% endblock %}</title>
     <!-- Bootstrap CSS CDN -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'css/punchin.css' %}">
     <!-- Link to your CSS files here -->
 </head>
 <body>
@@ -16,13 +17,13 @@
         <!-- Common header content like navigation bar -->
         <!-- Ensure Sign Out only shows for logged-in users -->
         {% if user.is_authenticated %}
-        <a href="{% url 'logout' %}" class="btn btn-danger">Sign Out</a>
+    <!--    <a href="{% url 'logout' %}" class="btn btn-danger">Sign Out</a> -->
         {% endif %}
     </header>
     <main>
         <nav>
             {% if user.is_authenticated %}
-            <a href="{% url 'logout' %}" class="btn btn-link">Logout</a>
+        <!--   <a href="{% url 'logout' %}" class="btn btn-link">Logout</a> -->
             {% else %}
             <a href="{% url 'login' %}" class="btn btn-link">Login</a> |
             <a href="{% url 'register' %}" class="btn btn-link">Register</a>
