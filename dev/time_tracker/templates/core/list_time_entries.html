@@ -7,8 +7,9 @@
     <h2>Time Entries</h2>
     <ul>
         {% for entry in entries %}
-            <li>{{ entry.clock_in_time }} - {{ entry.clock_out_time }}</li>
+        <li>{{ entry.clock_in }} - {{ entry.clock_out }} | {{ entry.description }}</li>
         {% endfor %}
     </ul>
+    <a href="{% url 'create-entry' %}">Add New Entry</a>
 </body>
 </html>

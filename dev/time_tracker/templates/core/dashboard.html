@@ -1,0 +1,13 @@
+<!-- templates/core/dashboard.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Dashboard</h1>
+
+<div>
+    <!-- Your dashboard-specific content here -->
+</div>
+
+
+<a href="{% url 'logout' %}" class="btn btn-danger">Sign Out</a>
+{% endblock %}

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,7 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'core',
+    "core",
 ]
 
 MIDDLEWARE = [
@@ -55,7 +56,7 @@ ROOT_URLCONF = "time_tracker.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, 'templates')],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -126,3 +127,30 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# Custom User Model (not using the django user model).  The line below pointing to custom user model.
+AUTH_USER_MODEL = 'core.PunchinUser'
+
+# LOGIN_REDIRECT_URL set to the 'dashboard' URL. This tells Django where to redirect after a successful login
+LOGIN_URL = 'accounts/login'
+# or wherever you want to redirect users after login
+LOGIN_REDIRECT_URL = 'dashboard'
+
+
+# ensure cookies are only sent over HTTPS.
+SESSION_COOKIE_SECURE = True
+
+# configure the email backend (example with console backend for development):
+# For development only.
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# For production, you will need to configure a real email backend. For production, use SMTP backend.  See https://docs.djangoproject.com/en/4.2/topics/email/#smtp-backend
+'''
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'your email host'
+EMAIL_PORT = your email port
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your email username'
+EMAIL_HOST_PASSWORD = 'your email password'
+'''

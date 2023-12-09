@@ -1,7 +1,8 @@
 from django.contrib import admin
+from .models import PunchinUser, TimeEntry
 
 # Register your models here.
-from .models import User, TimeEntry
 
-admin.site.register(User)
+
+admin.site.register(PunchinUser)  #using  custom user model.
 admin.site.register(TimeEntry)
