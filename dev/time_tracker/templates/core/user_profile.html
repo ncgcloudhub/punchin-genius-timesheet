@@ -1,0 +1,17 @@
+
+
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>User Profile</h2>
+<p>Username: {{ user.username }}</p>
+<p>Email: {{ user.email }}</p>
+
+
+
+<p><a href="{% url 'password_reset' %}">Change password</a></p>
+
+<a href="{% url 'logout' %}" class="btn btn-danger">Sign Out</a>
+{% endblock %}
