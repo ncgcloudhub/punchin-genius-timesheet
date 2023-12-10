@@ -128,19 +128,4 @@ a {
 a:hover {
     text-decoration: underline;
 }
-/* Align Agree to terms and conditions checkbox with label text */
-.form-group {
-    display: flex;
-    align-items: center;
-    /* This ensures vertical alignment */
-}
 
-.form-group label {
-    margin-bottom: 0;
-    /* Remove the default bottom margin from labels */
-}
-
-.form-group input[type="checkbox"] {
-    margin-right: 10px;
-    /* Add some space between the checkbox and the label text */
-}
