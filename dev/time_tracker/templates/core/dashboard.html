@@ -4,10 +4,19 @@
 {% block content %}
 <h1>Dashboard</h1>
 
+{% if user.is_authenticated %}
+<div class="user-info">
+    <img src="{{ user.profile_image_url }}" alt="Profile Icon" class="profile-icon">
+    <!-- Adjust the source accordingly -->
+    <span>Welcome, {{ user.username }}</span>
+</div>
+<a href="{% url 'logout' %}" class="btn btn-danger">Sign Out</a>
+{% else %}
+<p>Please <a href="{% url 'login' %}">login</a> to access the dashboard.</p>
+{% endif %}
+
 <div>
     <!-- Your dashboard-specific content here -->
 </div>
 
-
-<a href="{% url 'logout' %}" class="btn btn-danger">Sign Out</a>
 {% endblock %}

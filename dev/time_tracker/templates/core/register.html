@@ -1,12 +1,16 @@
+<!-- templates/core/register.html -->
 {% extends 'base.html' %}
 
+{% load static %}
 {% block content %}
+<div class="form-container">
   <h2>Register</h2>
-  <form method="post">
+  <form method="post" class="register-form">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Register</button>
+    <button type="submit" class="btn btn-elegant">Register</button>
   </form>
-
-<p>Already have an account? <a href="{% url 'login' %}">Login here</a>.</p>
+  <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+</div>
 {% endblock %}
+

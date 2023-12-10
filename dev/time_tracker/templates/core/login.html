@@ -1,17 +1,22 @@
+<!-- templates/core/login.html -->
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Login</h2>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit" class="btn btn-primary">Login</button>
-  <p><a href="{% url 'password_reset' %}" class="btn btn-link">Forgot password?</a></p>
-</form>
-
-<p>Don't have an account? <a href="{% url 'register' %}" class="btn btn-secondary">Register here</a></p>
-
 {% if user.is_authenticated %}
-<p><a href="{% url 'logout' %}" class="btn btn-danger">Sign Out</a></p>
+<div class="centered-form">
+  <p>You are already logged in as {{ user.username }}.</p>
+  <a href="{% url 'logout' %}" class="btn btn-danger">Log Out</a>
+</div>
+{% else %}
+<div class="centered-form">
+  <h2>Login</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Login</button>
+  </form>
+  <p><a href="{% url 'password_reset' %}">Forgot password?</a></p>
+  <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+</div>
 {% endif %}
 {% endblock %}
