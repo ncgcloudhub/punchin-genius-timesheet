@@ -1,8 +1,11 @@
+# core/forms.py
+
 from django import forms
 from .models import TimeEntry
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
-from .models import PunchinUser
+from .models import Employer, EmployeeProfile, Invitation, PunchinUser
+
 
 User = get_user_model()
 
@@ -41,3 +44,8 @@ class RegisterForm(UserCreationForm):
         # This will remove the labels from being rendered
         for fieldname in ['username', 'first_name', 'middle_initial', 'last_name', 'email', 'phone_number', 'password1', 'password2']:
             self.fields[fieldname].label = False
+
+
+class EmployeeLinkForm(forms.Form):
+    invitation_token = forms.CharField(max_length=255)
+    # Add validation to check the token against EmployeeProfile instances

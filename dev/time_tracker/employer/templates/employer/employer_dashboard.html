@@ -1,0 +1,19 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Welcome to the Employer Dashboard</h1>
+<p>Welcome, {{ request.user.employer.name }}</p>
+
+<h2>Invitations</h2>
+<a href="{% url 'employer:send_invitation' %}">Send Invitation</a>
+<a href="{% url 'employer:invitation_sent' %}">View Sent Invitations</a>
+
+<h2>Manage Employees</h2>
+<!-- Add your employee management links here -->
+
+<h2>Reports</h2>
+<!-- Add your report links here -->
+
+<a href="{% url 'employer:employer_dashboard' %}">Back to Dashboard</a>
+{% endblock %}
