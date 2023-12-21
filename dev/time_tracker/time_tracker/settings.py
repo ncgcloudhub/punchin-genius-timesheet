@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "core",
+    "employer",
 ]
 
 MIDDLEWARE = [
@@ -137,9 +138,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = 'core.PunchinUser'
 
 # LOGIN_REDIRECT_URL set to the 'dashboard' URL. This tells Django where to redirect after a successful login
-LOGIN_URL = 'accounts/login'
+LOGIN_URL = 'login'
 # or wherever you want to redirect users after login
-LOGIN_REDIRECT_URL = 'dashboard'
+# LOGIN_REDIRECT_URL = 'dashboard'
+# The URL name for the view that decides where to redirect users after login
+LOGIN_REDIRECT_URL = 'dashboard_redirect'
 
 
 # ensure cookies are only sent over HTTPS.
@@ -158,3 +161,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'your email username'
 EMAIL_HOST_PASSWORD = 'your email password'
 '''
+
+# Email template settings
+PASSWORD_RESET_EMAIL_TEMPLATE_NAME = 'registration/password_reset_email.html'
+PASSWORD_RESET_SUBJECT_TEMPLATE_NAME = 'registration/password_reset_subject.txt'

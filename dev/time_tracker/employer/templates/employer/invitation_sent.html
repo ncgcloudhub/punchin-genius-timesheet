@@ -1,0 +1,10 @@
+<!-- \templates\core\invitation_sent.html -->
+{% extends 'base.html' %}
+
+
+{% extends "base.html" %}
+{% block content %}
+<h2>Invitation Sent Successfully</h2>
+<p>An invitation has been sent to the provided email address.</p>
+<a href="{% url 'core:employer_dashboard' %}" class="btn btn-primary">Return to Dashboard</a>
+{% endblock %}

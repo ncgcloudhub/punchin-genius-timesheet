@@ -1,13 +1,13 @@
-<!-- \templates\core\password_reset_confirmation.html -->
+<!-- \templates\core\invitation_form.html -->
 {% extends 'base.html' %}
 
 {% block content %}
 <div class="container mt-5">
-    <h2>Reset Your Password</h2>
+    <h2>Send Invitation</h2>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Reset Password</button>
+        <button type="submit" class="btn btn-primary">Send Invitation</button>
     </form>
 </div>
 {% endblock %}

@@ -2,15 +2,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Dashboard</h1>
+<h1>Dashboard Home Page</h1>
 
 {% if user.is_authenticated %}
 <div class="user-info">
-    <img src="{{ user.profile_image_url }}" alt="Profile Icon" class="profile-icon">
-    <!-- Adjust the source accordingly -->
-    <span>Welcome, {{ user.username }}</span>
+    <!-- Adjust the following line if 'profile_image_url' does not exist -->
+    <!-- <img src="{{ user.profile_image_url }}" alt="Profile Icon" class="profile-icon"> -->
+    <span>Welcome, {{ user.username }}. Today's date is {{ now|date:"F j, Y" }}</span>
+    <a href="{% url 'logout' %}" class="btn btn-danger">Sign Out</a>
 </div>
-<a href="{% url 'logout' %}" class="btn btn-danger">Sign Out</a>
 {% else %}
 <p>Please <a href="{% url 'login' %}">login</a> to access the dashboard.</p>
 {% endif %}

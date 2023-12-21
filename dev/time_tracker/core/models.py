@@ -1,18 +1,22 @@
+# core/models.py
+
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from employer.models import Employer, Invitation
+
 # Create your models here.
-
-
 
 
 class PunchinUser(AbstractUser):
     # Add any additional fields here
     pass
 
+
 class TimeEntry(models.Model):
-    #user = models.ForeignKey(PunchinUser, on_delete=models.CASCADE)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    # user = models.ForeignKey(PunchinUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE)
     clock_in = models.DateTimeField()
     clock_out = models.DateTimeField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -22,3 +26,9 @@ class TimeEntry(models.Model):
         return f"{self.user.username} - {self.clock_in}"
 
 
+class EmployeeProfile(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    employer = models.ForeignKey(
+        Employer, on_delete=models.SET_NULL, null=True, blank=True)
+    # Additional fields can be added here as needed
