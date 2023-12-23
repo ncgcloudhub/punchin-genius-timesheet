@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.http import HttpResponse, HttpResponseForbidden
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from core.forms import RegisterForm, PunchinUserCreationForm
+from core.forms import RegisterForm
 
 
 # Create your views here.
@@ -53,26 +53,24 @@ def employer_dashboard(request):
 
 def employer_registration(request):
     if request.method == 'POST':
-        # Use the custom user creation form
-        user_form = PunchinUserCreationForm(request.POST)
+        user_form = RegisterForm(request.POST)
         employer_form = EmployerRegistrationForm(request.POST)
-
         if user_form.is_valid() and employer_form.is_valid():
             user = user_form.save(commit=False)
             user.is_employer = True  # This field should be added to your user model
+            # Set the password for the user
+            user.set_password(user_form.cleaned_data['password1'])
             user.save()
 
             employer = employer_form.save(commit=False)
-            employer.user = user
+            employer.user = user  # Link the employer instance to the user
+            # Set the employer email to the user's email
+            employer.employer_email_address = user.email
             employer.save()
-
-            # Assuming you have an EmployerProfile model
-            # Create the employer profile
-            EmployerProfile.objects.create(user=user, employer=employer)
 
             return redirect('employer:employer_dashboard')
     else:
-        user_form = PunchinUserCreationForm()  # Use the custom user creation form
+        user_form = RegisterForm()
         employer_form = EmployerRegistrationForm()
 
     return render(request, 'employer/employer_registration.html', {'user_form': user_form, 'employer_form': employer_form})

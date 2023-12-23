@@ -5,8 +5,8 @@ from django import forms
 from core.models import TimeEntry
 from .models import Employer, Invitation
 from django.contrib.auth import get_user_model
-from core.forms import RegisterForm
-from .forms import EmployerRegistrationForm
+# from core.forms import RegisterForm
+# from .forms import EmployerRegistrationForm
 
 
 class TimeEntryForm(forms.ModelForm):

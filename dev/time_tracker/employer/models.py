@@ -75,3 +75,12 @@ class Invitation(models.Model):
     is_accepted = models.BooleanField(default=False)
     expiration_date = models.DateTimeField()
     # Additional fields as required
+
+
+class EmployerProfile(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='employerprofile'
+    )
+    # Add additional fields specific to the employer profile here
