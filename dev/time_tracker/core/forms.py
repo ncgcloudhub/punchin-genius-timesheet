@@ -1,10 +1,10 @@
 # core/forms.py
 
 from django import forms
-from .models import TimeEntry
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
-from .models import Employer, EmployeeProfile, Invitation, PunchinUser
+from .models import Employer, EmployeeProfile, PunchinUser, TimeEntry
+from employer.models import Invitation
 
 
 User = get_user_model()
@@ -31,18 +31,18 @@ class RegisterForm(UserCreationForm):
 
     class Meta:
         model = PunchinUser
-        fields = ['username', 'first_name', 'middle_initial',
-                  'last_name', 'email', 'phone_number', 'password1', 'password2']
+        fields = ['first_name', 'middle_initial',
+                  'last_name', 'phone_number', 'email', 'password1', 'password2']
 
     def __init__(self, *args, **kwargs):
         super(RegisterForm, self).__init__(*args, **kwargs)
         # This will set the placeholder attribute for username and password fields
-        self.fields['username'].widget.attrs['placeholder'] = 'Username'
+        self.fields['email'].widget.attrs['placeholder'] = 'E-Mail Address (Username)'
         self.fields['password1'].widget.attrs['placeholder'] = 'Password'
         self.fields['password2'].widget.attrs['placeholder'] = 'Password confirmation'
 
         # This will remove the labels from being rendered
-        for fieldname in ['username', 'first_name', 'middle_initial', 'last_name', 'email', 'phone_number', 'password1', 'password2']:
+        for fieldname in ['first_name', 'middle_initial', 'last_name', 'phone_number', 'email',  'password1', 'password2']:
             self.fields[fieldname].label = False
 
 

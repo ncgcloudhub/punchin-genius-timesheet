@@ -97,3 +97,22 @@ def clock_in_view(request):
 def clock_out_view(request):
     # Your logic here
     return render(request, 'core/clock_out.html')
+
+
+def custom_login(request):
+    # Existing login logic here...
+    if request.user.is_authenticated:
+        if hasattr(request.user, 'employerprofile'):
+            return redirect('employer_dashboard')
+        else:
+            return redirect('employee_dashboard')
+    # Handle login failure logic...
+
+
+@login_required
+def dashboard_redirect(request):
+    if hasattr(request.user, 'employerprofile'):
+        return redirect('employer:employer_dashboard')
+    else:
+        # Make sure to define this view and URL
+        return redirect('employee_dashboard')
