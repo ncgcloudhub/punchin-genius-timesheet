@@ -1,0 +1,26 @@
+<!-- templates/core/employee_dashboard.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Employee Dashboard</h1>
+
+{% if user.is_authenticated %}
+<div class="user-info">
+    <!-- Adjust the following line if 'profile_image_url' does not exist -->
+    <img src="{{ user.profile_image_url }}" alt="Profile Icon" class="profile-icon">
+
+    <span>Welcome, {{ user.username }}. Today's date is {{ now|date:"F j, Y" }}</span>
+    <a href="{% url 'logout' %}" class="btn btn-danger">Log Out</a>
+
+
+
+</div>
+{% else %}
+<p>Please <a href="{% url 'login' %}">login</a> to access the employee dashboard.</p>
+{% endif %}
+
+<div>
+    <!-- Your employee dashboard-specific content here -->
+</div>
+
+{% endblock %}

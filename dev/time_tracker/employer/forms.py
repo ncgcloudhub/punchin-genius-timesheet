@@ -5,8 +5,13 @@ from django import forms
 from core.models import TimeEntry
 from .models import Employer, Invitation
 from django.contrib.auth import get_user_model
-# from core.forms import RegisterForm
-# from .forms import EmployerRegistrationForm
+from django.utils.safestring import mark_safe
+from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class TimeEntryForm(forms.ModelForm):
@@ -17,20 +22,48 @@ class TimeEntryForm(forms.ModelForm):
 
 
 class EmployerRegistrationForm(forms.ModelForm):
-    # If you want to use a separate field for username
-    username = forms.CharField(max_length=150)
-    password = forms.CharField(widget=forms.PasswordInput)
+    password = forms.CharField(widget=forms.PasswordInput())
+    agree_terms = forms.BooleanField(
+        label=mark_safe(
+            'I agree to the <a href="/path-to-terms-and-conditions" target="_blank">terms and conditions</a>'),
+        required=True
+    )
 
     class Meta:
         model = Employer
-        fields = ['employer_name', 'employer_email_address',
-                  'employer_phone_number']
+        fields = [
+            'employer_name', 'employer_email_address', 'employer_phone_number',
+            'employer_address', 'employer_city', 'employer_state', 'employer_zip_code',
+            'employer_ein_number', 'password'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        """Initialize form with custom settings for placeholders and classes."""
+        super(EmployerRegistrationForm, self).__init__(*args, **kwargs)
+        for field in self.fields:
+            self.fields[field].widget.attrs.update({
+                'class': 'form-control',
+                'placeholder': self.fields[field].label
+            })
+        self.fields['agree_terms'].widget.attrs.update({'class': ''})
 
     def save(self, commit=True):
+        """Save the employer instance and create a user account with hashed password."""
         employer = super().save(commit=False)
-        # Here you can handle the creation of the user account with the username and password
+        user = None
         if commit:
-            employer.save()
+            try:
+                # Handle the user creation with hashed password
+                user = User.objects.create(
+                    username=employer.employer_email_address,
+                    email=employer.employer_email_address,
+                    password=make_password(self.cleaned_data["password"])
+                )
+                employer.user = user
+                employer.save()
+            except Exception as e:
+                logger.error(f"Error saving employer or creating user: {e}")
+                raise ValidationError("Failed to register employer and user")
         return employer
 
 

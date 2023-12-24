@@ -7,7 +7,8 @@ app_name = 'employer'
 
 urlpatterns = [
     path('register/', views.employer_registration, name='employer_registration'),
-    path('dashboard/', views.employer_dashboard, name='employer_dashboard'),
+    path('employer_dashboard/', views.employer_dashboard,
+         name='employer_dashboard'),
     path('invitation/sent/', views.invitation_sent, name='invitation_sent'),
     path('invitation/send/', views.send_invitation, name='send_invitation'),
     path('accept-invitation/<uuid:token>/',

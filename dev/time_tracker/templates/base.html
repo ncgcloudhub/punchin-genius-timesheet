@@ -17,18 +17,20 @@
         <!-- Common header content like navigation bar -->
         <!-- Ensure Sign Out only shows for logged-in users -->
         {% if user.is_authenticated %}
-    <!--    <a href="{% url 'logout' %}" class="btn btn-danger">Sign Out</a> -->
+        <a href="{% url 'logout' %}" class="btn btn-danger">Sign Out</a>
         {% endif %}
     </header>
     <main>
-        <nav>
-            {% if user.is_authenticated %}
-        <!--   <a href="{% url 'logout' %}" class="btn btn-link">Logout</a> -->
-            {% else %}
-            <a href="{% url 'login' %}" class="btn btn-link">Login</a> |
-            <a href="{% url 'register' %}" class="btn btn-link">Register</a>
-            {% endif %}
-        </nav>
+    <nav>
+        <!-- If the user is not authenticated, show the login, employee registration, and employer registration links -->
+        {% if not user.is_authenticated %}
+        <a href="{% url 'login' %}" class="btn btn-link">Login</a> |
+        <a href="{% url 'register' %}" class="btn btn-link">Employee Registration</a> |
+        <!-- No namespace required as it's at project level -->
+        <a href="{% url 'employer:employer_registration' %}" class="btn btn-link">Employer Registration</a>
+        <!-- Using 'employer' namespace -->
+        {% endif %}
+    </nav>
         {% block content %}
         <!-- Your base HTML content here -->
         {% endblock %}

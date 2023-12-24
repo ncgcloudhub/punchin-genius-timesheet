@@ -204,98 +204,105 @@ Plan for Deployment:
 
 ## As you continue developing, start considering deployment options for making your application accessible online. This could involve researching hosting services like Heroku, AWS, or DigitalOcean.
 
-working urls looks like using /accounts/<page>:
-http://localhost:8000/dashboard
-http://localhost:8000/register
-http://localhost:8000/accounts/login/
-http://localhost:8000/accounts/logout
-http://localhost:8000/employer/dashboard
-http://localhost:8000/send-invitation
-http://localhost:8000/accept-invitation/<uuid:token>/
+Here is a list of frontend URLs based on the typical functionality you might expect in a time-tracking application for both employees and employers. These URLs are derived from your Django URL configurations and should be tested in your development environment, typically at `http://localhost:8000/` followed by the specific path.
 
-http://localhost:8000/clock-in
-http://localhost:8000/clock-out
+### Core App URLs (Employee Related)
 
-http://localhost:8000/account/user_profile
+1. **Employee Dashboard**: Access the main dashboard for an employee.
 
-not work urls:
+   ```
+   http://localhost:8000/core/employee_dashboard/
+   ```
 
-# ----------------
+2. **Register**: Register a new employee account.
 
-# http://localhost:8000/login (desnot work - )
+   ```
+   http://localhost:8000/register/
+   ```
 
-# http://localhost:8000/logout (desnot work)
+3. **Login**: Login to the application.
 
-http://localhost:8000/entries
-http://localhost:8000/password_change
-http://localhost:8000/password_reset
+   ```
+   http://localhost:8000/accounts/login/
+   ```
 
----
+4. **Logout**: Logout of the application.
 
-To thoroughly test your application, here is a list of URLs you should verify, based on the files you've shared and the functionality described:
+   ```
+   http://localhost:8000/accounts/logout/
+   ```
 
-1. **User Registration:**
+5. **List Time Entries**: View a list of time entries made by the employee.
 
-   - Path: `/register/`
-   - Description: Test the user registration functionality, ensuring that new users can successfully create accounts.
+   ```
+   http://localhost:8000/core/entries/
+   ```
 
-2. **User Login:**
+6. **Clock In**: Page or action to clock in.
 
-   - Path: `/login/`
-   - Description: Test the user login functionality, ensuring that registered users can log in successfully.
+   ```
+   http://localhost:8000/core/clock-in/
+   ```
 
-3. **User Logout:**
+7. **Clock Out**: Page or action to clock out.
 
-   - Path: `/logout/`
-   - Description: Test the logout functionality, ensuring that users can log out successfully.
+   ```
+   http://localhost:8000/core/clock-out/
+   ```
 
-4. **User Dashboard:**
+8. **User Profile**: View or edit the user's profile.
+   ```
+   http://localhost:8000/core/account/user_profile/
+   ```
 
-   - Path: `/dashboard/`
-   - Description: After logging in, test accessing the user dashboard. This should differ based on whether the user is an employee or an employer.
+### Employer App URLs (Employer Related)
 
-5. **Employer Registration:**
+Assuming you have an employer app with typical functionalities:
 
-   - Path: `/employer/register/`
-   - Description: Test the employer registration process to ensure that employers can register successfully and their specific details (like email and phone number) are captured.
+1. **Employer Dashboard**: Access the main dashboard for an employer.
 
-6. **Employer Dashboard:**
+   ```
+   http://localhost:8000/employer/employer_dashboard/
+   ```
 
-   - Path: `/employer/dashboard/`
-   - Description: After an employer logs in, test accessing the employer dashboard. Verify that it shows relevant information and functionalities for an employer.
+2. **View Employees**: See a list of employees, their time sheets, etc.
 
-7. **Send Invitation (by Employer):**
+   ```
+   http://localhost:8000/employer/employees/
+   ```
 
-   - Path: `/send-invitation/`
-   - Description: Test the functionality where employers can send invitations to potential employees. Ensure that the invitation process works correctly.
+3. **Send Invitation**: Send an invitation to join the employer's organization.
 
-8. **Accept Invitation (by Employee):**
+   ```
+   http://localhost:8000/employer/invitation/send/
+   ```
 
-   - Path: `/accept-invitation/<uuid:token>/`
-   - Description: Test the link or process through which employees can accept invitations. This usually involves clicking a link sent via email.
+4. **View Sent Invitations**: View all invitations sent by the employer.
+   ```
+   http://localhost:8000/employer/invitation/sent/
+   ```
 
-9. **Password Change:**
+### Additional Authentication Related URLs
 
-   - Path: `/password_change/`
-   - Description: Test the functionality that allows users to change their password.
+Django's built-in authentication system provides URLs for password management. If you've included these in your `urls.py`, they might look like this:
 
-10. **Password Reset:**
+- **Change Password**:
 
-    - Path: `/password_reset/`
-    - Description: Test the password reset functionality, ensuring that users can request a password reset and complete the process.
+  ```
+  http://localhost:8000/accounts/password_change/
+  ```
 
-11. **Clock In/Out (for Employees):**
+- **Reset Password**:
+  ```
+  http://localhost:8000/accounts/password_reset/
+  ```
 
-    - Paths: `/clock-in/` and `/clock-out/`
-    - Description: Test the clock-in and clock-out functionalities for employees to record their work times.
+### Testing the URLs
 
-12. **List Time Entries (for Employees):**
+1. **Ensure the Server is Running**: Make sure your Django development server is running with `python manage.py runserver`.
 
-    - Path: `/entries/`
-    - Description: Test viewing the list of time entries for an employee.
+2. **Login Required**: Many of these URLs will require the user to be logged in. Ensure you are testing them in the correct order or state (logged in or logged out as needed).
 
-13. **User Profile:**
-    - Path: `/account/user_profile/`
-    - Description: Test accessing and possibly editing the user profile.
+3. **Testing Employer URLs**: For employer-specific URLs, make sure that the user account you are testing with has employer privileges or profiles attached.
 
-Remember to test these functionalities both as an employer and as an employee to ensure all user roles work as intended. Additionally, consider edge cases such as accessing employer-specific pages as an employee and vice versa to ensure proper access control.
+By navigating to these URLs in your web browser while your Django development server is running, you should be able to interact with the various parts of your application. Ensure that your URL patterns in the Django configuration match these paths and that the corresponding views and templates are properly set up to handle requests to these endpoints. If you encounter any issues or need further specifics on these URLs, let me know!

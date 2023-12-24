@@ -7,9 +7,11 @@
 {% if user.is_authenticated %}
 <div class="user-info">
     <!-- Adjust the following line if 'profile_image_url' does not exist -->
-    <!-- <img src="{{ user.profile_image_url }}" alt="Profile Icon" class="profile-icon"> -->
+    <img src="{{ user.profile_image_url }}" alt="Profile Icon" class="profile-icon">
+
     <span>Welcome, {{ user.username }}. Today's date is {{ now|date:"F j, Y" }}</span>
-    <a href="{% url 'logout' %}" class="btn btn-danger">Sign Out</a>
+    <a href="{% url 'core:logout' %}" class="btn btn-danger">Log Out</a>
+
 </div>
 {% else %}
 <p>Please <a href="{% url 'login' %}">login</a> to access the dashboard.</p>

@@ -1,13 +1,25 @@
-{% extends "base.html" %}
+<!--/employer/templates/employer/employer_registration.html -->
+
+{% extends 'base.html' %}
 
 {% block content %}
-<h1>Employer Registration</h1>
-
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Register</button>
-</form>
-
-<a href="{% url 'employer:employer_dashboard' %}">Back to Dashboard</a>
+<div class="container">
+    <h2>Employer Registration</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-section">
+            <h3>User Information</h3>
+            {{ user_form.as_p }} <!-- Render user form fields -->
+        </div>
+        <div class="form-section">
+            <h3>Employer Details</h3>
+            {{ employer_form.as_p }} <!-- Render employer form fields -->
+        </div>
+        <div class="form-check">
+            {{ employer_form.agree_terms }} <!-- Render agree_terms separately to control its display -->
+            {{ employer_form.agree_terms.label_tag }}
+        </div>
+        <button type="submit" class="btn btn-primary">Register</button>
+    </form>
+</div>
 {% endblock %}

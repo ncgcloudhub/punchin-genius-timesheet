@@ -10,12 +10,11 @@ from core.models import TimeEntry, EmployeeProfile  # Import from core.models
 from employer.models import Employer, Invitation, EmployerProfile
 from core.forms import RegisterForm
 from .forms import TimeEntryForm, EmployerInvitationForm, EmployerRegistrationForm
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from django.utils import timezone
 from django.http import HttpResponse, HttpResponseForbidden
 from django.contrib import messages
-from django.contrib.auth import get_user_model
-from core.forms import RegisterForm
+from django.contrib.auth import get_user_model, login
 
 
 # Create your views here.
@@ -29,26 +28,39 @@ def dashboard_redirect(request):
     else:
         return redirect('core:dashboard')  # URL name for employee's dashboard
 
+# checks whether the user is authenticated and is either a superuser (is_superuser) or has the is_employer attribute set to True.
+
+
+def can_access_employer_dashboard(user):
+    return user.is_authenticated and (user.is_superuser or user.is_employer)
+
 
 @login_required
+@user_passes_test(can_access_employer_dashboard, login_url='employer_dashboard')
 @permission_required('employer.can_view_employer_dashboard', raise_exception=True)
 def employer_dashboard(request):
-    print(request.user)
-    if not hasattr(request.user, 'employerprofile'):
+    # Allow superusers to access the dashboard without an employer profile.
+    if request.user.is_superuser:
+        print("Superuser bypassing employer profile check.")
+        # You might want to retrieve all employers or perform some other logic for superusers.
+        # For example, let's assume you just list all employers.
+        employers = Employer.objects.all()
+        context = {'employers': employers}
+        return render(request, 'employer/employer_dashboard.html', context)
+
+    # For regular users, check if they have an employer profile.
+    elif hasattr(request.user, 'employerprofile'):
+        print("User has an employer profile.")
+        employer_id = request.user.employerprofile.employer_id
+        employees = request.user.employerprofile.employee_set.all()
+        context = {
+            'employees': employees,
+            'employer_id': employer_id
+        }
+        return render(request, 'employer/employer_dashboard.html', context)
+    else:
         print("User does not have an employer profile.")
         return HttpResponseForbidden("You are not allowed to view this page.")
-
-    # Assuming 'employerprofile' is a related name for the Employer model linked to the User.
-    print("User has an employer profile.")
-    employer_id = request.user.employerprofile.employer_id
-    employees = request.user.employerprofile.employee_set.all()
-    # Include 'employer_id' in the context dictionary.
-    context = {
-        'employees': employees,
-        'employer_id': employer_id  # Add this line
-    }
-    # return render(request, 'employer/employer_dashboard.html')
-    return render(request, 'employer/employer_dashboard.html', context)
 
 
 def employer_registration(request):
@@ -56,24 +68,58 @@ def employer_registration(request):
         user_form = RegisterForm(request.POST)
         employer_form = EmployerRegistrationForm(request.POST)
         if user_form.is_valid() and employer_form.is_valid():
+            # Create a new user and set them as an employer
             user = user_form.save(commit=False)
-            user.is_employer = True  # This field should be added to your user model
-            # Set the password for the user
+            user.is_employer = True
             user.set_password(user_form.cleaned_data['password1'])
+            # Using email as username if applicable
+            user.username = user_form.cleaned_data['email']
             user.save()
 
+            # Create a new employer profile
             employer = employer_form.save(commit=False)
-            employer.user = user  # Link the employer instance to the user
-            # Set the employer email to the user's email
-            employer.employer_email_address = user.email
+            employer.user = user
+            # Set additional fields if they are not already handled by the form
+            employer.name = employer_form.cleaned_data['employer_name']
+            employer.address = employer_form.cleaned_data['employer_address']
+            employer.city = employer_form.cleaned_data['employer_city']
+            employer.state = employer_form.cleaned_data['employer_state']
+            employer.zip_code = employer_form.cleaned_data['employer_zip']
+            employer.ein_number = employer_form.cleaned_data['employer_ein']
+            # Ensure this is the field name on your model
+            employer.email_address = user.email
+            # Add any additional fields you need
             employer.save()
 
+            # Send an email confirmation to the employer's email address
+            send_mail(
+                'Welcome to PunchIn Genius Timesheet!',
+                'Your employer account has been successfully created.',
+                'no-reply@punchingenius.com',
+                [user.email],
+                fail_silently=False,
+            )
+
+            # Log in the user automatically after registering (optional)
+            login(request, user)
+
+            # Redirect to the employer's dashboard
             return redirect('employer:employer_dashboard')
+        else:
+            # If the form is not valid, render the registration page again with form errors
+            return render(request, 'employer/employer_registration.html', {
+                'user_form': user_form,
+                'employer_form': employer_form
+            })
     else:
+        # If it's a GET request, render the empty registration form
         user_form = RegisterForm()
         employer_form = EmployerRegistrationForm()
 
-    return render(request, 'employer/employer_registration.html', {'user_form': user_form, 'employer_form': employer_form})
+    return render(request, 'employer/employer_registration.html', {
+        'user_form': user_form,
+        'employer_form': employer_form
+    })
 
 
 @login_required

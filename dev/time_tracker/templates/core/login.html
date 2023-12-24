@@ -10,6 +10,16 @@
 {% else %}
 <div class="centered-form">
   <h2>Login</h2>
+  <!-- Display messages here -->
+  {% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+      {% endfor %}
+  </ul>
+  {% endif %}
+  <!-- End of message display -->
+
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}

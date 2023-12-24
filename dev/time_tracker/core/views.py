@@ -4,12 +4,15 @@ from django.urls import reverse
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login, get_user_model
+from django.contrib.auth import login, get_user_model, authenticate
 from .models import TimeEntry, EmployeeProfile
 from .forms import TimeEntryForm, RegisterForm
 from django.db.models import Sum, Avg
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
+from django.contrib import messages
+from django.contrib.auth.views import LoginView
+
 
 # Create your views here.
 User = get_user_model()
@@ -25,14 +28,21 @@ def register(request):
         form = RegisterForm()
     return render(request, 'core/register.html', {'form': form})
 
+# checks whether the user is authenticated and is either a superuser (is_superuser) or has the is_employee attribute set to True.
 
+
+def can_access_employee_dashboard(user):
+    return user.is_superuser or (user.is_authenticated and user.is_employer)
+
+
+# Employee dashboard view in core/views.py
 @login_required
-def dashboard(request):
+@user_passes_test(can_access_employee_dashboard, login_url='employee_dashboard')
+def employee_dashboard(request):
     # Print out to the console for debugging
     print("Is the user authenticated?", request.user.is_authenticated)
-
-    # Continue with your existing logic...
-    return render(request, 'core/dashboard.html', {'now': timezone.now()})
+    # Include any logic you want specifically for the employee dashboard
+    return render(request, 'core/employee_dashboard.html', {'now': timezone.now()})
 
 
 @login_required
@@ -77,16 +87,6 @@ def generate_report(request):
     return render(request, 'core/report.html', {'total_hours': total_hours, 'average_hours': average_hours})
 
 
-def login_redirect(request):
-    return redirect('/accounts/login/')
-
-
-@login_required
-def dashboard_view(request):
-    # Your logic here
-    return render(request, 'core/dashboard.html')
-
-
 @login_required
 def clock_in_view(request):
     # Your logic here
@@ -99,20 +99,32 @@ def clock_out_view(request):
     return render(request, 'core/clock_out.html')
 
 
-def custom_login(request):
-    # Existing login logic here...
-    if request.user.is_authenticated:
-        if hasattr(request.user, 'employerprofile'):
-            return redirect('employer_dashboard')
-        else:
-            return redirect('employee_dashboard')
-    # Handle login failure logic...
-
-
 @login_required
+# Your logic to determine the redirection URL goes here
+# For example, you can check the user's role and redirect accordingly
 def dashboard_redirect(request):
     if hasattr(request.user, 'employerprofile'):
         return redirect('employer:employer_dashboard')
     else:
-        # Make sure to define this view and URL
-        return redirect('employee_dashboard')
+        return redirect('core:employee_dashboard')
+        # Handle login failure logic...
+
+
+class CustomLoginView(LoginView):
+    template_name = 'core/login.html'
+
+    def get_success_url(self):
+        # Check if user is linked with an employer profile
+        if hasattr(self.request.user, 'employerprofile'):
+            # Redirect to employer dashboard
+            return reverse('employer:employer_dashboard')
+        else:
+            # Redirect to employee dashboard
+            return reverse('core:employee_dashboard')
+
+
+# checks whether the user is authenticated and is either a superuser (is_superuser) or has the is_employer attribute set to True.
+
+
+def can_access_employer_dashboard(user):
+    return user.is_authenticated and (user.is_superuser or user.is_employer)
