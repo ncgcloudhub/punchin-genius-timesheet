@@ -22,7 +22,6 @@ class TimeEntryForm(forms.ModelForm):
 
 
 class EmployerRegistrationForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput())
     agree_terms = forms.BooleanField(
         label=mark_safe(
             'I agree to the <a href="/path-to-terms-and-conditions" target="_blank">terms and conditions</a>'),
@@ -34,7 +33,7 @@ class EmployerRegistrationForm(forms.ModelForm):
         fields = [
             'employer_name', 'employer_email_address', 'employer_phone_number',
             'employer_address', 'employer_city', 'employer_state', 'employer_zip_code',
-            'employer_ein_number', 'password'
+            'employer_ein_number'
         ]
 
     def __init__(self, *args, **kwargs):

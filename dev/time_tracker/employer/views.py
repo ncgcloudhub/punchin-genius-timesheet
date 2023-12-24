@@ -15,6 +15,9 @@ from django.utils import timezone
 from django.http import HttpResponse, HttpResponseForbidden
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
+from django.db import transaction
+from core.models import PunchinUser
+from core.forms import RegisterForm
 
 
 # Create your views here.
@@ -63,6 +66,7 @@ def employer_dashboard(request):
         return HttpResponseForbidden("You are not allowed to view this page.")
 
 
+'''
 def employer_registration(request):
     if request.method == 'POST':
         user_form = RegisterForm(request.POST)
@@ -120,6 +124,7 @@ def employer_registration(request):
         'user_form': user_form,
         'employer_form': employer_form
     })
+'''
 
 
 @login_required
@@ -165,3 +170,62 @@ def accept_invitation(request, token):
 
 def invitation_sent(request):
     return render(request, 'employer/invitation_sent.html')
+
+
+def register_user(request):
+    if request.method == 'POST':
+        user_form = RegisterForm(request.POST)
+        if user_form.is_valid():
+            with transaction.atomic():
+                user = user_form.save(commit=False)
+                user.is_employer = True
+                user.save()
+                login(request, user,
+                      backend='django.contrib.auth.backends.ModelBackend')
+                return redirect('employer:register_employer_details')
+    else:
+        user_form = RegisterForm()
+
+    return render(request, 'employer/register_user.html', {'form': user_form})
+
+
+# @login_required
+def register_employer_details(request):
+    # Retrieve user data from the session
+    user_data = request.session.get('user_data', None)
+
+    if not user_data:
+        return redirect('employer:register_user')
+
+    if request.method == 'POST':
+        employer_form = EmployerRegistrationForm(request.POST)
+
+        if employer_form.is_valid():
+            # Save employer details
+            employer_data = employer_form.cleaned_data
+
+            # Store employer data in the session
+            request.session['employer_data'] = employer_data
+
+            # Redirect to the confirmation page or another page for the next step
+            return redirect('employer:confirm_registration')
+    else:
+        employer_form = EmployerRegistrationForm()
+
+    return render(request, 'employer/register_employer_details.html', {'employer_form': employer_form})
+
+
+@login_required
+def confirm_registration(request):
+    # Retrieve user and employer data from the session
+    user_data = request.session.get('user_data', None)
+    employer_data = request.session.get('employer_data', None)
+
+    if not user_data or not employer_data:
+        return redirect('employer:register_user')
+
+    # Render a confirmation page displaying user and employer data
+    return render(request, 'employer/confirm_registration.html', {
+        'user_data': user_data,
+        'employer_data': employer_data
+    })
