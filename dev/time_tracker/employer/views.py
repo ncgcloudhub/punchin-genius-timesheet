@@ -1,10 +1,12 @@
 # employer/views.py
 
+from django.core.exceptions import PermissionDenied
+from django.shortcuts import render, redirect
 from .utils import send_email_invitation  # Import the missing function
 from django.urls import reverse
 from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
-from core.models import TimeEntry, EmployeeProfile  # Import from core.models
+from core.models import TimeEntry, EmployeeProfile, PunchinUser
 # from .models import Employer, Invitation  # Import from employer.models
 # Import EmployerProfile from employer.models
 from employer.models import Employer, Invitation, EmployerProfile
@@ -16,9 +18,7 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.db import transaction
-from core.models import PunchinUser
-from core.forms import RegisterForm
-
+from django.conf import settings
 
 # Create your views here.
 
@@ -29,7 +29,8 @@ def dashboard_redirect(request):
         # URL name for employer's dashboard
         return redirect('employer:employer_dashboard')
     else:
-        return redirect('core:dashboard')  # URL name for employee's dashboard
+        # URL name for employee's dashboard
+        return redirect('core:employee_dashboard')
 
 # checks whether the user is authenticated and is either a superuser (is_superuser) or has the is_employer attribute set to True.
 
@@ -38,111 +39,70 @@ def can_access_employer_dashboard(user):
     return user.is_authenticated and (user.is_superuser or user.is_employer)
 
 
+# Constants for URLs
+LOGIN_URL = 'login'  # URL of the login page
+EMPLOYER_DASHBOARD_URL = 'employer_dashboard'  # URL of the employer dashboard
+
+
+def handle_superuser(request):
+    # Superuser logic here
+    print("Superuser bypassing employer profile check.")
+    # You might want to retrieve all employers or perform some other logic for superusers.
+    # For example, let's assume you just list all employers.
+    employers = Employer.objects.all()
+    context = {'employers': employers}
+    return render(request, 'employer/employer_dashboard.html', context)
+
+
+def handle_regular_user(request):
+    # Regular user with employer profile logic here
+    print("User has an employer profile.")
+    employer_id = request.user.employerprofile.employer_id
+    employees = request.user.employerprofile.employee_set.all()
+    context = {
+        'employees': employees,
+        'employer_id': employer_id
+    }
+    return render(request, 'employer/employer_dashboard.html', context)
+
+
 @login_required
-@user_passes_test(can_access_employer_dashboard, login_url='employer_dashboard')
+@user_passes_test(can_access_employer_dashboard, login_url=LOGIN_URL)
 @permission_required('employer.can_view_employer_dashboard', raise_exception=True)
 def employer_dashboard(request):
-    # Allow superusers to access the dashboard without an employer profile.
-    if request.user.is_superuser:
-        print("Superuser bypassing employer profile check.")
-        # You might want to retrieve all employers or perform some other logic for superusers.
-        # For example, let's assume you just list all employers.
-        employers = Employer.objects.all()
-        context = {'employers': employers}
-        return render(request, 'employer/employer_dashboard.html', context)
-
-    # For regular users, check if they have an employer profile.
-    elif hasattr(request.user, 'employerprofile'):
-        print("User has an employer profile.")
-        employer_id = request.user.employerprofile.employer_id
-        employees = request.user.employerprofile.employee_set.all()
-        context = {
-            'employees': employees,
-            'employer_id': employer_id
-        }
-        return render(request, 'employer/employer_dashboard.html', context)
-    else:
-        print("User does not have an employer profile.")
-        return HttpResponseForbidden("You are not allowed to view this page.")
-
-
-'''
-def employer_registration(request):
-    if request.method == 'POST':
-        user_form = RegisterForm(request.POST)
-        employer_form = EmployerRegistrationForm(request.POST)
-        if user_form.is_valid() and employer_form.is_valid():
-            # Create a new user and set them as an employer
-            user = user_form.save(commit=False)
-            user.is_employer = True
-            user.set_password(user_form.cleaned_data['password1'])
-            # Using email as username if applicable
-            user.username = user_form.cleaned_data['email']
-            user.save()
-
-            # Create a new employer profile
-            employer = employer_form.save(commit=False)
-            employer.user = user
-            # Set additional fields if they are not already handled by the form
-            employer.name = employer_form.cleaned_data['employer_name']
-            employer.address = employer_form.cleaned_data['employer_address']
-            employer.city = employer_form.cleaned_data['employer_city']
-            employer.state = employer_form.cleaned_data['employer_state']
-            employer.zip_code = employer_form.cleaned_data['employer_zip']
-            employer.ein_number = employer_form.cleaned_data['employer_ein']
-            # Ensure this is the field name on your model
-            employer.email_address = user.email
-            # Add any additional fields you need
-            employer.save()
-
-            # Send an email confirmation to the employer's email address
-            send_mail(
-                'Welcome to PunchIn Genius Timesheet!',
-                'Your employer account has been successfully created.',
-                'no-reply@punchingenius.com',
-                [user.email],
-                fail_silently=False,
-            )
-
-            # Log in the user automatically after registering (optional)
-            login(request, user)
-
-            # Redirect to the employer's dashboard
-            return redirect('employer:employer_dashboard')
+    try:
+        if request.user.is_superuser:
+            return handle_superuser(request)
+        elif hasattr(request.user, 'employerprofile'):
+            return handle_regular_user(request)
         else:
-            # If the form is not valid, render the registration page again with form errors
-            return render(request, 'employer/employer_registration.html', {
-                'user_form': user_form,
-                'employer_form': employer_form
-            })
-    else:
-        # If it's a GET request, render the empty registration form
-        user_form = RegisterForm()
-        employer_form = EmployerRegistrationForm()
-
-    return render(request, 'employer/employer_registration.html', {
-        'user_form': user_form,
-        'employer_form': employer_form
-    })
-'''
+            raise PermissionDenied("You are not allowed to view this page.")
+    except PermissionDenied as e:
+        # Handle the PermissionDenied exception, e.g., return an error page or redirect to a custom error page.
+        return render(request, 'access_denied.html')
 
 
 @login_required
 def send_invitation(request):
-    if not request.user.is_employer:  # Assuming you have a method/property to check if the user is an employer
-        return HttpResponseForbidden("You are not allowed to perform this action. Please select the 'Employee' option in the registration form.")
+    if not request.user.is_employer:
+        return HttpResponseForbidden("You are not allowed to perform this action.")
 
     if request.method == 'POST':
         form = EmployerInvitationForm(request.POST)
         if form.is_valid():
             invitation = form.save(commit=False)
-            # Assuming you have a ForeignKey to the employer in the user profile
             invitation.employer = request.user.employerprofile
             invitation.expiration_date = timezone.now() + timezone.timedelta(days=7)
             invitation.save()
-            # Send the email invitation logic goes here
-            send_email_invitation(request, invitation)  # Call the function
-            return redirect('invitation_sent')
+
+            # Construct invitation link
+            invitation_link = f"{settings.MY_DOMAIN}{reverse('employer:accept_invitation', args=[invitation.token])}"
+
+            # Send the email invitation logic
+            # Update your function to accept the link
+            send_email_invitation(invitation, invitation_link)
+
+            return redirect('employer:invitation_sent')
     else:
         form = EmployerInvitationForm()
     return render(request, 'employer/send_invitation.html', {'form': form})
@@ -189,24 +149,29 @@ def register_user(request):
     return render(request, 'employer/register_user.html', {'form': user_form})
 
 
-# @login_required
+@login_required
 def register_employer_details(request):
-    # Retrieve user data from the session
-    user_data = request.session.get('user_data', None)
-
-    if not user_data:
-        return redirect('employer:register_user')
-
+    # Initialize the form
     if request.method == 'POST':
         employer_form = EmployerRegistrationForm(request.POST)
 
         if employer_form.is_valid():
-            # Save employer details
-            employer_data = employer_form.cleaned_data
+            # Create but don't commit the save yet
+            employer = employer_form.save(commit=False)
+            employer.user = request.user  # Associate the user
 
-            # Store employer data in the session
+            # You can use session to temporarily store the employer details for confirmation
+            employer_data = employer_form.cleaned_data
+            # Store data in session for confirmation or further processing
             request.session['employer_data'] = employer_data
 
+            # You might want to add additional steps here before saving the employer, such as a confirmation page
+            # For now, let's save the employer and redirect to a confirmation or directly to the dashboard
+            employer.save()
+            request.user.is_employer = True  # Mark the user as an employer
+            request.user.save()
+
+            # Redirect to a confirmation page or employer dashboard
             # Redirect to the confirmation page or another page for the next step
             return redirect('employer:confirm_registration')
     else:

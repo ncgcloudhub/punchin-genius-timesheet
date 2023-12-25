@@ -48,6 +48,10 @@ urlpatterns = [
         template_name='core/password_reset_complete.html'), name='password_reset_complete'),
     path('dashboard_redirect/', core_views.dashboard_redirect,
          name='dashboard_redirect'),
+    path('activate/<uidb64>/<token>/', core_views.activate, name='activate'),
+    path('account_activation_sent/', core_views.account_activation_sent,
+         name='account_activation_sent'),
+    # ... other paths ...
     # Include the default Django authentication URLs for good measure (includes 'logout')
     path('accounts/', include('django.contrib.auth.urls')),
 ]

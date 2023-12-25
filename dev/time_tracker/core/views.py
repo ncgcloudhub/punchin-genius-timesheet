@@ -12,27 +12,88 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.views import LoginView
+from django.core.mail import send_mail
+from .utils import account_activation_token
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.sites.shortcuts import get_current_site
+from django.conf import settings
+from django.template.loader import render_to_string
+# Import the can_access_employer_dashboard function from the appropriate location
+from core.utils import can_access_employer_dashboard
 
 
 # Create your views here.
 User = get_user_model()
 
 
+def can_access_employee_dashboard(user):
+    return user.is_superuser or (user.is_authenticated and user.is_employer)
+
+
+# checks whether the user is authenticated and is either a superuser (is_superuser) or has the is_employer attribute set to True.
+
+
+def can_access_employer_dashboard(user):
+    return user.is_authenticated and (user.is_superuser or user.is_employer)
+
+
+def account_activation_sent(request):
+    # Render a template that informs the user that an activation email has been sent
+    return render(request, 'core/account_activation_sent.html')
+
+# Registration view
+
+
 def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('login')  # Include the 'core' namespace
+            user = form.save(commit=False)
+            user.is_active = False  # User will be inactive until they activate via email
+            user.is_employer = False  # Default as employee
+            user.save()
+
+            # Construct activation link
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = account_activation_token.make_token(user)
+            activation_link = f"{settings.MY_DOMAIN}{reverse('activate', args=[uid, token])}"
+
+            # Email setup and sending
+            subject = 'Activate Your PunchIn Account'
+            message = render_to_string('core/account_activation_email.html', {
+                'user': user,
+                'activation_link': activation_link,  # Full activation link
+                # other context variables...
+            })
+            user.email_user(subject, message)
+
+            # Redirect to a confirmation page
+            return redirect('account_activation_sent')
     else:
         form = RegisterForm()
     return render(request, 'core/register.html', {'form': form})
 
+# Account Activation View (Create a view to handle the link that the user clicks from their email.)
+
+
+def activate(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        login(request, user)
+        return redirect('core:employee_dashboard')
+    else:
+        return render(request, 'account_activation_invalid.html')
+
+
 # checks whether the user is authenticated and is either a superuser (is_superuser) or has the is_employee attribute set to True.
-
-
-def can_access_employee_dashboard(user):
-    return user.is_superuser or (user.is_authenticated and user.is_employer)
 
 
 # Employee dashboard view in core/views.py
@@ -43,6 +104,59 @@ def employee_dashboard(request):
     print("Is the user authenticated?", request.user.is_authenticated)
     # Include any logic you want specifically for the employee dashboard
     return render(request, 'core/employee_dashboard.html', {'now': timezone.now()})
+
+
+@login_required
+# Your logic to determine the redirection URL goes here
+# For example, you can check the user's role and redirect accordingly
+def dashboard_redirect(request):
+    if hasattr(request.user, 'employerprofile'):
+        return redirect('employer:employer_dashboard')
+    else:
+        return redirect('core:employee_dashboard')
+        # Handle login failure logic...
+
+
+@login_required
+# Providing a Path to Become an Employer
+def apply_employer(request):
+    if request.method == 'POST':
+        # Handle the form submission and set user as an employer
+        request.user.is_employer = True
+        request.user.save()
+        # Redirect to employer-specific setup or dashboard
+        # make sure to define this view and URL
+        return redirect('employer_dashboard')
+    else:
+        # Show a confirmation or information page about becoming an employer
+        # create this template
+        return render(request, 'core/apply_employer.html')
+
+
+@login_required
+def join_employer(request):
+    if request.method == 'POST':
+        form = EmployeeLinkForm(request.POST)
+        if form.is_valid():
+            token = form.cleaned_data['invitation_token']
+            try:
+                invitation = Invitation.objects.get(
+                    token=token, is_accepted=False)
+                # Assuming EmployeeProfile and Invitation have the necessary fields
+                employee_profile, created = EmployeeProfile.objects.get_or_create(
+                    user=request.user)
+                employee_profile.employer = invitation.employer
+                employee_profile.save()
+                invitation.is_accepted = True
+                invitation.save()
+                messages.success(request, "Successfully joined the employer.")
+                return redirect('core:employee_dashboard')
+            except Invitation.DoesNotExist:
+                messages.error(request, "Invalid or expired invitation.")
+    else:
+        form = EmployeeLinkForm()
+
+    return render(request, 'core/join_employer.html', {'form': form})
 
 
 @login_required
@@ -99,32 +213,39 @@ def clock_out_view(request):
     return render(request, 'core/clock_out.html')
 
 
-@login_required
-# Your logic to determine the redirection URL goes here
-# For example, you can check the user's role and redirect accordingly
-def dashboard_redirect(request):
-    if hasattr(request.user, 'employerprofile'):
-        return redirect('employer:employer_dashboard')
-    else:
-        return redirect('core:employee_dashboard')
-        # Handle login failure logic...
-
-
 class CustomLoginView(LoginView):
     template_name = 'core/login.html'
 
     def get_success_url(self):
-        # Check if user is linked with an employer profile
-        if hasattr(self.request.user, 'employerprofile'):
-            # Redirect to employer dashboard
+        # Check if the user has an employer profile and is marked as an employer
+        if hasattr(self.request.user, 'employerprofile') and self.request.user.is_employer:
             return reverse('employer:employer_dashboard')
         else:
-            # Redirect to employee dashboard
+            # Redirect to employee dashboard for all other users
             return reverse('core:employee_dashboard')
 
 
-# checks whether the user is authenticated and is either a superuser (is_superuser) or has the is_employer attribute set to True.
-
-
-def can_access_employer_dashboard(user):
-    return user.is_authenticated and (user.is_superuser or user.is_employer)
+@login_required
+# Accepting Invitation View: Create a view where employees can enter the invitation code or token to link themselves to the employer
+def accept_invitation(request):
+    if request.method == 'POST':
+        # Form where they input the invitation token
+        form = EmployeeLinkForm(request.POST)
+        if form.is_valid():
+            token = form.cleaned_data['invitation_token']
+            try:
+                invitation = Invitation.objects.get(
+                    token=token, is_accepted=False)
+                employee_profile = request.user.employeeprofile
+                employee_profile.employer = invitation.employer
+                employee_profile.save()
+                invitation.is_accepted = True
+                invitation.save()
+                # Redirect to a confirmation or the employee dashboard
+                return redirect('core:employee_dashboard')
+            except Invitation.DoesNotExist:
+                # Handle invalid or used invitation token
+                pass
+    else:
+        form = EmployeeLinkForm()
+    return render(request, 'core/accept_invitation.html', {'form': form})
