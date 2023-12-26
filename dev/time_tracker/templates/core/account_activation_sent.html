@@ -1,0 +1,26 @@
+<!-- \templates\core\account_activation_sent.html-->
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card text-center">
+                <div class="card-header">
+                    <h3>Welcome to PunchIn Genius!</h3>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Your registration was successful!</p>
+                    <p class="card-text">Please check your email, including your spam folder, to complete registration
+                        by clicking on the activation link.</p>
+                    <a href="/" class="btn btn-primary mt-3">Return to Homepage</a>
+                    <a href="{% url 'login' %}" class="btn btn-primary mt-3">Return to Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

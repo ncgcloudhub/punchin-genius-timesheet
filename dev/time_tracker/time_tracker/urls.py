@@ -1,3 +1,4 @@
+# project-level time_tracker/urls.py config
 """
 URL configuration for time_tracker project.
 
@@ -18,21 +19,19 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from core import views as core_views
-
-
-# project-level time_tracker/urls.py config
-
+from core.views import CustomLoginView  # Import the custom_login view
 
 urlpatterns = [
     path('admin/', admin.site.urls),  # Admin site
-    path('', include('core.urls')),
+    path('core/', include('core.urls', namespace='core')),
     path('employer/', include('employer.urls')),
 
     # Authentication Views
-    path('dashboard/', core_views.dashboard, name='dashboard'),
+    path('employee_dashboard/', core_views.employee_dashboard,
+         name='employee_dashboard'),
     path('register/', core_views.register, name='register'),
-    path('accounts/login/',
-         auth_views.LoginView.as_view(template_name='core/login.html'), name='login'),
+    path('accounts/login/', CustomLoginView.as_view(),
+         name='login'),
     path('accounts/logout/',
          auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path('accounts/password_change/', auth_views.PasswordChangeView.as_view(
@@ -47,7 +46,12 @@ urlpatterns = [
         template_name='core/password_reset_confirm.html'), name='password_reset_confirm'),
     path('accounts/reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='core/password_reset_complete.html'), name='password_reset_complete'),
-
-    # Include the default Django authentication URLs for good measure (might be redundant)
+    path('dashboard_redirect/', core_views.dashboard_redirect,
+         name='dashboard_redirect'),
+    path('activate/<uidb64>/<token>/', core_views.activate, name='activate'),
+    path('account_activation_sent/', core_views.account_activation_sent,
+         name='account_activation_sent'),
+    # ... other paths ...
+    # Include the default Django authentication URLs for good measure (includes 'logout')
     path('accounts/', include('django.contrib.auth.urls')),
 ]

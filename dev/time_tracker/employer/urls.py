@@ -6,8 +6,12 @@ from core.views import list_time_entries
 app_name = 'employer'
 
 urlpatterns = [
-    path('register/', views.employer_registration, name='employer_registration'),
-    path('dashboard/', views.employer_dashboard, name='employer_dashboard'),
+    #    path('register/', views.employer_registration, name='employer_registration'),
+    path('register/user/', views.register_user, name='register_user'),
+    path('register/details/', views.register_employer_details,
+         name='register_employer_details'),
+    path('employer_dashboard/', views.employer_dashboard,
+         name='employer_dashboard'),
     path('invitation/sent/', views.invitation_sent, name='invitation_sent'),
     path('invitation/send/', views.send_invitation, name='send_invitation'),
     path('accept-invitation/<uuid:token>/',

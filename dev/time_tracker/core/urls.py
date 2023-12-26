@@ -11,5 +11,8 @@ urlpatterns = [
     path('entries/', views.list_time_entries, name='list-entries'),
     path('clock-in/', views.clock_in, name='clock_in'),
     path('clock-out/', views.clock_out, name='clock_out'),
+    path('employee_dashboard/', views.employee_dashboard,
+         name='employee_dashboard'),
+    path('apply-employer/', views.apply_employer, name='apply_employer'),
     # Add other app-specific URLs here
 ]

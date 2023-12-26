@@ -8,7 +8,12 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from phonenumber_field.modelfields import PhoneNumberField
 from django.conf import settings
-from django.db import models
+from django import forms
+
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def generate_employer_id():
@@ -21,14 +26,13 @@ def generate_employer_id():
 
 
 class Employer(models.Model):
-
-    # Other fields
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-    )
+    # User relation
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE)
+    # Identifiers
     employer_id = models.CharField(
         max_length=10, unique=True, editable=False, db_index=True)
+    # Employer details
     employer_name = models.CharField(max_length=255)
     employer_address = models.CharField(max_length=255, blank=True)
     employer_city = models.CharField(max_length=255, blank=True)
@@ -36,20 +40,19 @@ class Employer(models.Model):
     employer_zip_code = models.CharField(max_length=10, blank=True)
     employer_email_address = models.EmailField(unique=True, db_index=True)
     employer_phone_number = PhoneNumberField(unique=True, blank=True)
-    # Employer Identification Number, optional
     employer_ein_number = models.CharField(
-        max_length=20, blank=True, null=True)
+        max_length=20, blank=True, null=True)  # Optional EIN number
 
     def save(self, *args, **kwargs):
-        if not self.employer_id:  # Generate ID only if it doesn't exist
+        """Override save method to ensure a unique employer_id is generated."""
+        if not self.employer_id:
             self.employer_id = generate_employer_id()
         super(Employer, self).save(*args, **kwargs)
 
     def create_invitation(self, email):
+        """Create an invitation with a 7-day expiration date."""
         try:
-            # Set the expiration date to 7 days from now
             expiration_date = timezone.now() + timedelta(days=7)
-            # Create the invitation instance
             invitation = Invitation.objects.create(
                 employer=self,
                 email=email,
@@ -57,7 +60,7 @@ class Employer(models.Model):
             )
             return invitation
         except Exception as e:
-            # Handle the exception, log it, or propagate as needed
+            logger.error(f"Failed to create invitation: {e}")
             raise ValidationError(f"Failed to create invitation: {e}")
 
     class Meta:
@@ -68,6 +71,7 @@ class Employer(models.Model):
 
 
 class Invitation(models.Model):
+    """Model representing an invitation sent to an email to join as an employer."""
     employer = models.ForeignKey(Employer, on_delete=models.CASCADE)
     # Ensure this field's format is validated through forms or serializers
     email = models.EmailField()
@@ -78,9 +82,7 @@ class Invitation(models.Model):
 
 
 class EmployerProfile(models.Model):
+    """Model representing additional details specific to employer profiles."""
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='employerprofile'
-    )
-    # Add additional fields specific to the employer profile here
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='employerprofile')
+    # Add additional fields as required

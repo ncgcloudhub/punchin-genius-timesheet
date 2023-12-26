@@ -1,5 +1,6 @@
 # /time_tracker/settings.py --> project settings
 
+
 """
 Django settings for time_tracker project.
 
@@ -85,7 +86,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'timetracker_db',
         'USER': 'postgres',
-        'PASSWORD': 'P0stgresadmin23!',
+        'PASSWORD': 'pass23!',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -171,7 +172,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'trionxai@gmail.com'
-EMAIL_HOST_PASSWORD = 'nuxt fgpn nhoi sdml'
+EMAIL_HOST_PASSWORD = 'sdfsdfwer21'
 
 
 # Email template settings

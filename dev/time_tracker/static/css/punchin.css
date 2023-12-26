@@ -129,3 +129,81 @@ a:hover {
     text-decoration: underline;
 }
 
+
+/* Employer Registration Form */
+.registration-form input,
+.registration-form button {
+    font-size: 1.25rem;
+    /* Increase font size */
+    height: auto;
+    /* Adjust height as needed */
+    padding: .75rem;
+    /* Increase padding for larger touch targets */
+}
+
+.registration-form label {
+    font-size: 1rem;
+    /* Adjust label font size as needed */
+}
+
+.registration-form .form-group {
+    margin-bottom: 1.5rem;
+    /* Increase spacing between form groups */
+}
+
+.progress-bar {
+    height: 2rem;
+    /* Make the progress bar taller */
+    line-height: 2rem;
+    /* Center the text vertically in the progress bar */
+}
+/* Make sure inputs take the full width of their parent container */
+.form-control {
+    width: 100%;
+    max-width: 500px;
+    /* You can set a max-width to prevent the fields from becoming too wide on large screens */
+}
+
+.long-text-field {
+    width: 100%;
+    /* Or you could use a specific pixel width like 500px */
+}
+
+.required-note {
+    font-style: italic;
+    margin-top: 15px;
+}
+
+.required {
+    color: red;
+    /* or your theme's color for required fields */
+}
+.error-message {
+    color: red;
+    /* Or any color that stands out */
+    font-weight: bold;
+    /* Makes text bold */
+    /* Add any other styling you wish */
+}
+
+
+/* Email sent page */
+.card {
+    margin-top: 100px;
+    /* Adjusts the top margin for better spacing */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, .05);
+    /* Adds a subtle shadow to make the card pop out */
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    /* Light gray background for the card header for a subtle contrast */
+    border-bottom: none;
+}
+
+.card-text {
+    line-height: 1.6;
+    /* Increases line-height for better readability */
+}
+
+/* --- EOF email message sent page --- */
