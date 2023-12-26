@@ -156,12 +156,16 @@ SESSION_COOKIE_SECURE = True
 # For development only.
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+<<<<<<< HEAD
+MY_DOMAIN = 'http://stritstax.com'
+=======
 # settings.py (development settings)
 MY_DOMAIN = 'http://localhost:8000'
 
 # Production
 # MY_DOMAIN = '# settings.py (production settings)
 # MY_DOMAIN = 'https://punchin.stritstax.com'
+>>>>>>> 58fb94664fb4d1d26687d1ee11ab14b81fd23afe
 
 
 # For production, you will need to configure a real email backend. For production, use SMTP backend.  See https://docs.djangoproject.com/en/4.2/topics/email/#smtp-backend

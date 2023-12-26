@@ -1,6 +1,3 @@
-# /time_tracker/settings.py --> project settings
-
-
 """
 Django settings for time_tracker project.
 
@@ -172,7 +169,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'trionxai@gmail.com'
-EMAIL_HOST_PASSWORD = 'sdfsdfwer21'
+EMAIL_HOST_PASSWORD = 'password-here'
 
 
 # Email template settings

@@ -177,6 +177,9 @@ a:hover {
 .required {
     color: red;
     /* or your theme's color for required fields */
+<<<<<<< HEAD
+}
+=======
 }
 .error-message {
     color: red;
@@ -207,3 +210,4 @@ a:hover {
 }
 
 /* --- EOF email message sent page --- */
+>>>>>>> 58fb94664fb4d1d26687d1ee11ab14b81fd23afe
