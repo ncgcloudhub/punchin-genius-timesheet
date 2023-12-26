@@ -1,4 +1,5 @@
-# core/views.py
+# core/views.py --> app specific views
+
 
 from django.urls import reverse
 from django.shortcuts import render, redirect

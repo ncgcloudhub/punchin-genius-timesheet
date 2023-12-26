@@ -1,4 +1,4 @@
-# core/forms.py
+# core/forms.py --> app specific forms
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm

@@ -1,5 +1,5 @@
 # \employer\forms.py
-#
+
 from django import forms
 # Assuming TimeEntry model is in employer/models.py
 from core.models import TimeEntry
