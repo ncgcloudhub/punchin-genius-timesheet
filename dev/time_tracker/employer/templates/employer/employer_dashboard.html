@@ -1,9 +1,11 @@
+<!-- /employer/templates/employer/employer_dashboard.html -->
+
 {% extends "base.html" %}
 
 {% block content %}
 <h1>Welcome to the Employer Dashboard</h1>
 <!-- Display the Employer ID -->
-<p>Your Employer ID: {{ employer_id }}</p> <!-- Add this line to display the Employer ID -->
+<p>Your Employer ID: {{ employer_id }}</p> <!-- This line displays the Employer ID -->
 <p>Welcome, {{ request.user.employer.name }}</p>
 
 <h2>Invitations</h2>
@@ -16,5 +18,8 @@
 <h2>Reports</h2>
 <!-- Add your report links here -->
 
-<a href="{% url 'employer:employer_dashboard' %}">Back to Dashboard</a>
+<!-- Link to go back to the employee dashboard -->
+<a href="{% url 'employee_dashboard' %}" class="btn btn-primary">Back to Employee Dashboard</a>
+<!-- This is the new line added -->
+
 {% endblock %}

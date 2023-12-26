@@ -21,7 +21,13 @@ from django.conf import settings
 from django.template.loader import render_to_string
 # Import the can_access_employer_dashboard function from the appropriate location
 from core.utils import can_access_employer_dashboard
+import logging
+from django.db import transaction
+from django.core.mail import EmailMessage, BadHeaderError
 
+
+# Configure a logger for your application
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 User = get_user_model()
@@ -49,29 +55,62 @@ def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False  # User will be inactive until they activate via email
-            user.is_employer = False  # Default as employee
-            user.save()
+            with transaction.atomic():
+                try:
+                    user = form.save(commit=False)
+                    user.is_active = False  # User will be inactive until they activate via email
+                    user.is_employer = False  # Default as employee
+                    # Add this line to save the first name
+                    user.first_name = form.cleaned_data.get('first_name')
+                    # Add this line to save the last name
+                    user.last_name = form.cleaned_data.get('last_name')
+                    user.save()
 
-            # Construct activation link
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            token = account_activation_token.make_token(user)
-            activation_link = f"{settings.MY_DOMAIN}{reverse('activate', args=[uid, token])}"
+                    # Construct activation link
+                    uid = urlsafe_base64_encode(force_bytes(user.pk))
+                    token = account_activation_token.make_token(user)
+                    activation_link = f"{settings.MY_DOMAIN}{reverse('activate', args=[uid, token])}"
+                    activation_link = f"{settings.MY_DOMAIN}{reverse('activate', args=[uid, token])}"
 
-            # Email setup and sending
-            subject = 'Activate Your PunchIn Account'
-            message = render_to_string('core/account_activation_email.html', {
-                'user': user,
-                'activation_link': activation_link,  # Full activation link
-                # other context variables...
-            })
-            user.email_user(subject, message)
+                    # Prepare the email message using render_to_string
+                    message = render_to_string('core/account_activation_email.html', {
+                        'user': user,
+                        'activation_link': activation_link,
+                    })
 
-            # Redirect to a confirmation page
-            return redirect('account_activation_sent')
+                    # Create the email and set content to HTML
+                    email = EmailMessage(
+                        'Activate Your PunchIn Account',  # Email subject
+                        message,  # Email body (HTML content)
+                        settings.DEFAULT_FROM_EMAIL,  # From email
+                        [user.email]  # To email
+                    )
+                    email.content_subtype = 'html'  # Specify the subtype as HTML
+
+                    # Send the email
+                    try:
+                        email.send()
+                    except BadHeaderError:
+                        # If there is a bad header error, handle it
+                        return HttpResponse('Invalid header found.')
+
+                    # Redirect to the account activation sent page
+                    return redirect('account_activation_sent')
+
+                except Exception as e:
+                    # Log the error
+                    logger.error(
+                        f"Error during registration for {user.email}: {e}")
+                    # Rollback the user creation
+                    raise
+
+                    # Optional: Add a message for the end user
+                    messages.error(
+                        request, "An error occurred during registration. Please try again.")
+
     else:
         form = RegisterForm()
+
     return render(request, 'core/register.html', {'form': form})
 
 # Account Activation View (Create a view to handle the link that the user clicks from their email.)
@@ -215,6 +254,13 @@ def clock_out_view(request):
 
 class CustomLoginView(LoginView):
     template_name = 'core/login.html'
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        # Add in the current date
+        context['current_date'] = timezone.now()
+        return context
 
     def get_success_url(self):
         # Check if the user has an employer profile and is marked as an employer

@@ -178,3 +178,32 @@ a:hover {
     color: red;
     /* or your theme's color for required fields */
 }
+.error-message {
+    color: red;
+    /* Or any color that stands out */
+    font-weight: bold;
+    /* Makes text bold */
+    /* Add any other styling you wish */
+}
+
+
+/* Email sent page */
+.card {
+    margin-top: 100px;
+    /* Adjusts the top margin for better spacing */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, .05);
+    /* Adds a subtle shadow to make the card pop out */
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    /* Light gray background for the card header for a subtle contrast */
+    border-bottom: none;
+}
+
+.card-text {
+    line-height: 1.6;
+    /* Increases line-height for better readability */
+}
+
+/* --- EOF email message sent page --- */
