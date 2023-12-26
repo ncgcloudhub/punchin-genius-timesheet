@@ -42,6 +42,11 @@ class UserManager(BaseUserManager):
 
 class PunchinUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
+<<<<<<< HEAD
+=======
+    first_name = models.CharField(max_length=30, null=True, blank=True)
+    last_name = models.CharField(max_length=150, null=True, blank=True)
+>>>>>>> 58fb94664fb4d1d26687d1ee11ab14b81fd23afe
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

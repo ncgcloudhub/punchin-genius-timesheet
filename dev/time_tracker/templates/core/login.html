@@ -1,12 +1,51 @@
 <!-- templates/core/login.html -->
+
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
 {% block content %}
-{% if user.is_authenticated %}
-<div class="centered-form">
-  <p>You are already logged in as {{ user.username }}.</p>
-  <a href="{% url 'logout' %}" class="btn btn-danger">Log Out</a>
+
+
+<div class="container">
+  {% if user.is_authenticated %}
+  <div class="authentication-info">
+    <h4>Welcome back, {{ user.first_name }}!</h4>
+    <p>Today's date is {{ current_date|date:"F j, Y" }}.</p>
+    <a href="{% url 'employee_dashboard' %}" class="btn btn-primary">Employee Dashboard</a>
+
+    <a href="{% url 'logout' %}" class="btn btn-outline-danger">Log Out</a>
+  </div>
+  {% else %}
+  <div class="login-form">
+    <h2 class="form-title">Login to Your Account</h2>
+    {% if messages %}
+    <div class="messages">
+      {% for message in messages %}
+      <div class="alert {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <form method="post" class="form-horizontal">
+      {% csrf_token %}
+      <div class="form-group">
+        {{ form.username|as_crispy_field }}
+      </div>
+      <div class="form-group">
+        {{ form.password|as_crispy_field }}
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary btn-block">Login</button>
+      </div>
+    </form>
+    <div class="link-section">
+      <a href="{% url 'password_reset' %}" class="forgot-password">Forgot password?</a>
+      <span>|</span>
+      <a href="{% url 'register' %}" class="register">Register for an account</a>
+    </div>
+  </div>
+  {% endif %}
 </div>
+<<<<<<< HEAD
 {% else %}
 <div class="centered-form">
   <h2>Login</h2>
@@ -29,4 +68,61 @@
   <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
 </div>
 {% endif %}
+=======
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 5px;
+    background: #f8f9fa;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .authentication-info,
+  .login-form {
+    text-align: center;
+  }
+
+  .form-title {
+    margin-bottom: 30px;
+  }
+
+  .form-horizontal .form-group {
+    margin-bottom: 15px;
+  }
+
+  .btn-primary {
+    background: #004085;
+    border: none;
+  }
+
+  .link-section {
+    margin-top: 20px;
+  }
+
+  .forgot-password,
+  .register {
+    color: #004085;
+    text-decoration: none;
+  }
+
+  .forgot-password:hover,
+  .register:hover {
+    text-decoration: underline;
+  }
+
+  .messages .alert {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+  }
+</style>
+>>>>>>> 58fb94664fb4d1d26687d1ee11ab14b81fd23afe
 {% endblock %}

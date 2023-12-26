@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "core",
     "employer",
+    "crispy_forms",
 ]
 
 MIDDLEWARE = [
@@ -65,6 +66,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.tz",
             ],
         },
     },
@@ -81,7 +83,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'timetracker_db',
         'USER': 'postgres',
-        'PASSWORD': 'password-here!',
+        'PASSWORD': 'pass23!',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -152,7 +154,12 @@ SESSION_COOKIE_SECURE = True
 # For development only.
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-MY_DOMAIN = 'http://stritstax.com'
+# settings.py (development settings)
+MY_DOMAIN = 'http://localhost:8000'
+
+# Production
+# MY_DOMAIN = '# settings.py (production settings)
+# MY_DOMAIN = 'https://punchin.stritstax.com'
 
 
 # For production, you will need to configure a real email backend. For production, use SMTP backend.  See https://docs.djangoproject.com/en/4.2/topics/email/#smtp-backend
@@ -162,7 +169,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'trionxai@gmail.com'
-EMAIL_HOST_PASSWORD = 'mypassword'
+EMAIL_HOST_PASSWORD = 'password-here'
 
 
 # Email template settings
