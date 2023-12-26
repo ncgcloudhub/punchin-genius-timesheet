@@ -1,4 +1,5 @@
-# core/views.py
+# core/views.py --> app specific views
+
 
 from django.urls import reverse
 from django.shortcuts import render, redirect
@@ -21,17 +22,14 @@ from django.conf import settings
 from django.template.loader import render_to_string
 # Import the can_access_employer_dashboard function from the appropriate location
 from core.utils import can_access_employer_dashboard
-<<<<<<< HEAD
-
-=======
 import logging
 from django.db import transaction
 from django.core.mail import EmailMessage, BadHeaderError
+from .forms import EmployeeLinkForm
 
 
 # Configure a logger for your application
 logger = logging.getLogger(__name__)
->>>>>>> 58fb94664fb4d1d26687d1ee11ab14b81fd23afe
 
 # Create your views here.
 User = get_user_model()
@@ -59,29 +57,6 @@ def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-<<<<<<< HEAD
-            user = form.save(commit=False)
-            user.is_active = False  # User will be inactive until they activate via email
-            user.is_employer = False  # Default as employee
-            user.save()
-
-            # Construct activation link
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            token = account_activation_token.make_token(user)
-            activation_link = f"{settings.MY_DOMAIN}{reverse('activate', args=[uid, token])}"
-
-            # Email setup and sending
-            subject = 'Activate Your PunchIn Account'
-            message = render_to_string('core/account_activation_email.html', {
-                'user': user,
-                'activation_link': activation_link,  # Full activation link
-                # other context variables...
-            })
-            user.email_user(subject, message)
-
-            # Redirect to a confirmation page
-            return redirect('account_activation_sent')
-=======
             with transaction.atomic():
                 try:
                     user = form.save(commit=False)
@@ -135,15 +110,12 @@ def register(request):
                     messages.error(
                         request, "An error occurred during registration. Please try again.")
 
->>>>>>> 58fb94664fb4d1d26687d1ee11ab14b81fd23afe
     else:
         form = RegisterForm()
 
     return render(request, 'core/register.html', {'form': form})
 
 # Account Activation View (Create a view to handle the link that the user clicks from their email.)
-<<<<<<< HEAD
-=======
 
 
 def activate(request, uidb64, token):
@@ -174,38 +146,6 @@ def employee_dashboard(request):
     # Include any logic you want specifically for the employee dashboard
     return render(request, 'core/employee_dashboard.html', {'now': timezone.now()})
 
->>>>>>> 58fb94664fb4d1d26687d1ee11ab14b81fd23afe
-
-
-def activate(request, uidb64, token):
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
-
-    if user is not None and account_activation_token.check_token(user, token):
-        user.is_active = True
-        user.save()
-        login(request, user)
-        return redirect('core:employee_dashboard')
-    else:
-        return render(request, 'account_activation_invalid.html')
-
-
-# checks whether the user is authenticated and is either a superuser (is_superuser) or has the is_employee attribute set to True.
-
-
-# Employee dashboard view in core/views.py
-@login_required
-<<<<<<< HEAD
-@user_passes_test(can_access_employee_dashboard, login_url='employee_dashboard')
-def employee_dashboard(request):
-    # Print out to the console for debugging
-    print("Is the user authenticated?", request.user.is_authenticated)
-    # Include any logic you want specifically for the employee dashboard
-    return render(request, 'core/employee_dashboard.html', {'now': timezone.now()})
-
 
 @login_required
 # Your logic to determine the redirection URL goes here
@@ -219,19 +159,6 @@ def dashboard_redirect(request):
 
 
 @login_required
-=======
-# Your logic to determine the redirection URL goes here
-# For example, you can check the user's role and redirect accordingly
-def dashboard_redirect(request):
-    if hasattr(request.user, 'employerprofile'):
-        return redirect('employer:employer_dashboard')
-    else:
-        return redirect('core:employee_dashboard')
-        # Handle login failure logic...
-
-
-@login_required
->>>>>>> 58fb94664fb4d1d26687d1ee11ab14b81fd23afe
 # Providing a Path to Become an Employer
 def apply_employer(request):
     if request.method == 'POST':
@@ -327,12 +254,6 @@ def clock_out_view(request):
     return render(request, 'core/clock_out.html')
 
 
-<<<<<<< HEAD
-class CustomLoginView(LoginView):
-    template_name = 'core/login.html'
-
-=======
-<<<<<<< HEAD
 class CustomLoginView(LoginView):
     template_name = 'core/login.html'
 
@@ -343,7 +264,6 @@ class CustomLoginView(LoginView):
         context['current_date'] = timezone.now()
         return context
 
->>>>>>> 58fb94664fb4d1d26687d1ee11ab14b81fd23afe
     def get_success_url(self):
         # Check if the user has an employer profile and is marked as an employer
         if hasattr(self.request.user, 'employerprofile') and self.request.user.is_employer:
@@ -377,25 +297,3 @@ def accept_invitation(request):
     else:
         form = EmployeeLinkForm()
     return render(request, 'core/accept_invitation.html', {'form': form})
-<<<<<<< HEAD
-=======
-=======
-def custom_login(request):
-    # Existing login logic here...
-    if request.user.is_authenticated:
-        if hasattr(request.user, 'employerprofile'):
-            return redirect('employer_dashboard')
-        else:
-            return redirect('employee_dashboard')
-    # Handle login failure logic...
-
-
-@login_required
-def dashboard_redirect(request):
-    if hasattr(request.user, 'employerprofile'):
-        return redirect('employer:employer_dashboard')
-    else:
-        # Make sure to define this view and URL
-        return redirect('employee_dashboard')
->>>>>>> 626ab05b3eeef995d737e5d886b205d7fb0e9860
->>>>>>> 58fb94664fb4d1d26687d1ee11ab14b81fd23afe

@@ -1,4 +1,5 @@
 # project-level time_tracker/urls.py config
+
 """
 URL configuration for time_tracker project.
 
