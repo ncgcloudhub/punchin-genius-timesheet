@@ -73,6 +73,7 @@ class Employer(models.Model):
 class Invitation(models.Model):
     """Model representing an invitation sent to an email to join as an employer."""
     employer = models.ForeignKey(Employer, on_delete=models.CASCADE)
+    # Ensure this field's format is validated through forms or serializers
     email = models.EmailField()
     token = models.UUIDField(default=uuid.uuid4, editable=False)
     is_accepted = models.BooleanField(default=False)

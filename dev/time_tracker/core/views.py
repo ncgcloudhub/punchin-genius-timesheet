@@ -252,6 +252,7 @@ def clock_out_view(request):
     return render(request, 'core/clock_out.html')
 
 
+<<<<<<< HEAD
 class CustomLoginView(LoginView):
     template_name = 'core/login.html'
 
@@ -295,3 +296,22 @@ def accept_invitation(request):
     else:
         form = EmployeeLinkForm()
     return render(request, 'core/accept_invitation.html', {'form': form})
+=======
+def custom_login(request):
+    # Existing login logic here...
+    if request.user.is_authenticated:
+        if hasattr(request.user, 'employerprofile'):
+            return redirect('employer_dashboard')
+        else:
+            return redirect('employee_dashboard')
+    # Handle login failure logic...
+
+
+@login_required
+def dashboard_redirect(request):
+    if hasattr(request.user, 'employerprofile'):
+        return redirect('employer:employer_dashboard')
+    else:
+        # Make sure to define this view and URL
+        return redirect('employee_dashboard')
+>>>>>>> 626ab05b3eeef995d737e5d886b205d7fb0e9860
