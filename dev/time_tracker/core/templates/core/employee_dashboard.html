@@ -1,0 +1,36 @@
+<!-- templates/core/employee_dashboard.html -->
+
+{% extends "base.html" %}
+
+{% load core_extras %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h1>Employee Dashboard</h1>
+
+{% if user.is_authenticated %}
+<div>
+    {% if not request.user.is_employer %}
+    <p>Want to register as an employer?</p>
+    <a href="{% url 'core:apply_employer' %}" class="btn btn-primary">Apply for Employer</a>
+    {% endif %}
+</div>
+<div class="user-info">
+    <!-- Adjust the following line if 'profile_image_url' does not exist -->
+    <img src="{{ user.profile_image_url }}" alt="Profile Icon" class="profile-icon">
+    <span>Welcome, {{ user.username }}. Today's date is {{ now|date:"F j, Y" }}</span>
+    <!-- Add button if the user can access employer dashboard -->
+    {% if user|can_access_employer_dashboard %}
+    <a href="{% url 'employer:employer_dashboard' %}" class="btn btn-primary">Employer Dashboard</a>
+    {% endif %}
+    <a href="{% url 'logout' %}" class="btn btn-danger">Log Out</a>
+</div>
+{% else %}
+<p>Please <a href="{% url 'login' %}">login</a> to access the employee dashboard.</p>
+{% endif %}
+
+<div>
+    <!-- Your employee dashboard-specific content here -->
+</div>
+
+{% endblock %}

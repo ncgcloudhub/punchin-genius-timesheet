@@ -1,0 +1,15 @@
+<!-- templates/core/clock_out.html -->
+
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Clock Out</h2>
+    <p>Press the button below to clock out:</p>
+    <form method="post" action="{% url 'core:clock_out' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Clock Out</button>
+    </form>
+</div>
+{% endblock %}

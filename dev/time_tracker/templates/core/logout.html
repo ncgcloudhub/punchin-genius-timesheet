@@ -1,9 +1,11 @@
-
+<!-- /templates/core/logout.html -->
 
 {% extends "base.html" %}
 
 {% block content %}
-<h2>You have been successfully logged out.</h2>
+<form action="{% url 'logout' %}" method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Logout</button>
+</form>
 
 {% endblock %}
-

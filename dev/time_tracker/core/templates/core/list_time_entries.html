@@ -1,0 +1,15 @@
+<!-- /core/templates/core/list_time_entries.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Time Entries</h2>
+    <ul>
+        {% for entry in entries %}
+        <li>{{ entry.clock_in }} - {{ entry.clock_out }} | {{ entry.description }}</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'create-entry' %}" class="btn btn-primary">Add New Entry</a>
+</div>
+{% endblock %}

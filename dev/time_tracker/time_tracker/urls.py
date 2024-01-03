@@ -20,21 +20,21 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from core import views as core_views
-from core.views import CustomLoginView  # Import the custom_login view
+# Import the custom_login view
+from core.views import CustomLoginView, CustomLogoutView
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),  # Admin site
-    path('core/', include('core.urls', namespace='core')),
+    path('core/', include('core.urls')),
     path('employer/', include('employer.urls')),
 
     # Authentication Views
-    path('employee_dashboard/', core_views.employee_dashboard,
-         name='employee_dashboard'),
+
     path('register/', core_views.register, name='register'),
     path('accounts/login/', CustomLoginView.as_view(),
          name='login'),
-    path('accounts/logout/',
-         auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+    path('accounts/logout/', CustomLogoutView.as_view(), name='logout'),
     path('accounts/password_change/', auth_views.PasswordChangeView.as_view(
         template_name='core/password_change_form.html'), name='password_change'),
     path('accounts/password_change/done/', auth_views.PasswordChangeDoneView.as_view(
@@ -47,11 +47,11 @@ urlpatterns = [
         template_name='core/password_reset_confirm.html'), name='password_reset_confirm'),
     path('accounts/reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='core/password_reset_complete.html'), name='password_reset_complete'),
-    path('dashboard_redirect/', core_views.dashboard_redirect,
-         name='dashboard_redirect'),
     path('activate/<uidb64>/<token>/', core_views.activate, name='activate'),
     path('account_activation_sent/', core_views.account_activation_sent,
          name='account_activation_sent'),
+    path('user_app_settings/', core_views.user_app_settings,
+         name='user_app_settings'),
     # ... other paths ...
     # Include the default Django authentication URLs for good measure (includes 'logout')
     path('accounts/', include('django.contrib.auth.urls')),

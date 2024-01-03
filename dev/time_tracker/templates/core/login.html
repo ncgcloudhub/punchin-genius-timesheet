@@ -4,38 +4,26 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-
-
 <div class="container">
   {% if user.is_authenticated %}
-  <div class="authentication-info">
-    <h4>Welcome back, {{ user.first_name }}!</h4>
-    <p>Today's date is {{ current_date|date:"F j, Y" }}.</p>
-    <a href="{% url 'employee_dashboard' %}" class="btn btn-primary">Employee Dashboard</a>
-
-    <a href="{% url 'logout' %}" class="btn btn-outline-danger">Log Out</a>
-  </div>
+  <!-- Welcome message and dashboard link for logged-in users -->
   {% else %}
   <div class="login-form">
     <h2 class="form-title">Login to Your Account</h2>
     {% if messages %}
-    <div class="messages">
-      {% for message in messages %}
-      <div class="alert {{ message.tags }}">{{ message }}</div>
-      {% endfor %}
-    </div>
+    <!-- Display messages -->
     {% endif %}
     <form method="post" class="form-horizontal">
       {% csrf_token %}
-      <div class="form-group">
-        {{ form.username|as_crispy_field }}
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="username" placeholder="Username" name="username" required>
+        <label for="username">Username</label>
       </div>
-      <div class="form-group">
-        {{ form.password|as_crispy_field }}
+      <div class="form-floating mb-3">
+        <input type="password" class="form-control" id="password" placeholder="Password" name="password" required>
+        <label for="password">Password</label>
       </div>
-      <div class="form-group">
-        <button type="submit" class="btn btn-primary btn-block">Login</button>
-      </div>
+      <button type="submit" class="btn btn-primary btn-block">Login</button>
     </form>
     <div class="link-section">
       <a href="{% url 'password_reset' %}" class="forgot-password">Forgot password?</a>
@@ -45,31 +33,8 @@
   </div>
   {% endif %}
 </div>
-<<<<<<< HEAD
-{% else %}
-<div class="centered-form">
-  <h2>Login</h2>
-  <!-- Display messages here -->
-  {% if messages %}
-  <ul class="messages">
-    {% for message in messages %}
-    <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-      {% endfor %}
-  </ul>
-  {% endif %}
-  <!-- End of message display -->
-
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Login</button>
-  </form>
-  <p><a href="{% url 'password_reset' %}">Forgot password?</a></p>
-  <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
-</div>
-{% endif %}
-=======
 {% endblock %}
+
 
 {% block extra_css %}
 <style>
@@ -124,5 +89,4 @@
     border-color: #f5c6cb;
   }
 </style>
->>>>>>> 58fb94664fb4d1d26687d1ee11ab14b81fd23afe
 {% endblock %}

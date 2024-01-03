@@ -1,0 +1,16 @@
+<!-- /core/templates/core/time_entry_form.html -->
+
+
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Time Entry Form</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Save Entry</button>
+  </form>
+</div>
+{% endblock %}

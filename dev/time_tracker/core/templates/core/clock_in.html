@@ -1,0 +1,14 @@
+<!-- templates/core/clock_in.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Clock In</h2>
+    <p>Press the button below to clock in:</p>
+    <form method="post" action="{% url 'core:clock_in' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">Clock In</button>
+    </form>
+</div>
+{% endblock %}
