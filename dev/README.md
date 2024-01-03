@@ -1,3 +1,32 @@
+### Reference Application / Companies
+
+# https://app.buddypunch.com/
+
+How would you like your employees to punch in?
+You can select more than one and change your selections at anytime.
+Username & Password
+4 Digit Pin
+QR Codes
+tag_faces
+Facial Recognition
+I'm not sure yet
+What type of devices will your employees be using to punch in?
+You can select more than one and change your selections at anytime.
+Desktop/Laptop
+Mobile
+Tablet
+I'm not sure yet
+
+
+Setup Pay Periods
+Frequency
+
+Current Pay Period Start Date
+12/02/2023
+The start date does not affect the length of your trial.
+
+# -------------------------------------------
+
 here is my outline:
 
 i would like to create a Time Punch (Clock in and clock out time) web app and cross mobile app accessing to the same database. I would like to create the web app locally (first in my computer) and then deploy to cloud services like Azure. There will be front end and backend. Also, we can add additional functions in the future such as projects, ticketings etc as additional modules (again these are sometime in the later future but wanted to keep in mind)

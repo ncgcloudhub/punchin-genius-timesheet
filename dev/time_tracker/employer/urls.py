@@ -9,7 +9,7 @@ app_name = 'employer'
 urlpatterns = [
     #    path('register/', views.employer_registration, name='employer_registration'),
     path('register/user/', views.register_user, name='register_user'),
-    path('register/details/', views.register_employer_details,
+    path('register-emloyer/', views.register_employer_details,
          name='register_employer_details'),
     path('employer_dashboard/', views.employer_dashboard,
          name='employer_dashboard'),

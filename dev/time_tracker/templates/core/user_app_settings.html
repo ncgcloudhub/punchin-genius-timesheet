@@ -1,0 +1,29 @@
+<!-- /templates/core/user_profile.html-->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>User Profile</h2>
+    <div class="mb-3">
+        <strong>Username:</strong> {{ user.username }}
+    </div>
+    <div class="mb-3">
+        <strong>Email:</strong> {{ user.email }}
+    </div>
+    <!-- Additional user information here -->
+    <!-- If you have first_name and last_name fields -->
+    <div class="mb-3">
+        <strong>First Name:</strong> {{ user.first_name }}
+    </div>
+    <div class="mb-3">
+        <strong>Last Name:</strong> {{ user.last_name }}
+    </div>
+
+    <!-- Link to change password -->
+    <p><a href="{% url 'password_change' %}" class="btn btn-outline-primary">Change Password</a></p>
+
+    <!-- Logout button -->
+    <a href="{% url 'logout' %}" class="btn btn-danger">Sign Out</a>
+</div>
+{% endblock %}

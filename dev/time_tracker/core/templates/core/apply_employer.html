@@ -1,0 +1,12 @@
+<!-- core/templates/core/apply_employer.html -->
+
+<!-- this is form will re-direct to employer/templates/employer/register_employer_details.html file-->
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Apply to Become an Employer</h1>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Confirm</button>
+</form>
+{% endblock %}

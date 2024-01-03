@@ -22,6 +22,9 @@ from django.db import transaction
 from django.conf import settings
 
 # Create your views here.
+# Constants for URLs
+LOGIN_URL = 'login'  # URL of the login page
+EMPLOYER_DASHBOARD_URL = 'employer_dashboard'  # URL of the employer dashboard
 
 
 @login_required
@@ -38,11 +41,6 @@ def dashboard_redirect(request):
 
 def can_access_employer_dashboard(user):
     return user.is_authenticated and (user.is_superuser or user.is_employer)
-
-
-# Constants for URLs
-LOGIN_URL = 'login'  # URL of the login page
-EMPLOYER_DASHBOARD_URL = 'employer_dashboard'  # URL of the employer dashboard
 
 
 def handle_superuser(request):
@@ -97,7 +95,8 @@ def send_invitation(request):
             invitation.save()
 
             # Construct invitation link
-            invitation_link = f"{settings.MY_DOMAIN}{reverse('employer:accept_invitation', args=[invitation.token])}"
+            invitation_link = f"{settings.MY_DOMAIN}{
+                reverse('employer:accept_invitation', args=[invitation.token])}"
 
             # Send the email invitation logic
             # Update your function to accept the link

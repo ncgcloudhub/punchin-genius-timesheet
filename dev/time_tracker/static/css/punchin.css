@@ -8,7 +8,7 @@
     cursor: pointer;
     outline: none;
     color: #fff;
-    background-color: #007bff;
+    background-color: #78C2AD;
     border: none;
     border-radius: 5px;
     box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.15);
@@ -177,9 +177,6 @@ a:hover {
 .required {
     color: red;
     /* or your theme's color for required fields */
-<<<<<<< HEAD
-}
-=======
 }
 .error-message {
     color: red;
@@ -210,4 +207,134 @@ a:hover {
 }
 
 /* --- EOF email message sent page --- */
->>>>>>> 58fb94664fb4d1d26687d1ee11ab14b81fd23afe
+/* Drop Down menu styles */
+:root {
+    --primary-color: #0056b3;
+    --secondary-color: #e9ecef;
+    --text-color: #343a40;
+    --dropdown-bg-color: #ffffff;
+    --dropdown-hover-color: #f2f2f2;
+    --header-height: 60px;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar {
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    border-bottom: 1px solid #dddddd;
+}
+
+.navbar-brand {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.nav-item.dropdown {
+    position: relative;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    /* Align to the left of the toggle button, adjust if necessary */
+    right: 0;
+    width: auto;
+    max-width: none;
+    /* Removes the restriction on width */
+    box-sizing: border-box;
+    display: none;
+    /* Changed from block to none */
+    animation: fadeIn 0.3s;
+    background-color: var(--dropdown-bg-color);
+    border: 1px solid #ddd;
+    /* Add a border if you like */
+}
+
+.dropdown-menu.show {
+    display: block;
+    /* Add this class to the element when you want to show the menu */
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-item {
+    display: block;
+    padding: 10px 20px;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: background-color 0.3s;
+    white-space: normal;
+    /* Changed from nowrap to normal */
+    overflow: visible;
+    /* Ensures the text is not cut off */
+    text-overflow: clip;
+}
+
+.dropdown-item:hover {
+    background-color: var(--dropdown-hover-color);
+}
+
+/* Responsive adjustment */
+@media (max-width: 768px) {
+    .dropdown-menu {
+        right: 0;
+        left: auto;
+    }
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: var(--dropdown-hover-color);
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: #007bff;
+    color: white;
+}
+
+.nav-item,
+.navbar-nav .nav-link {
+    padding: .5rem 1rem;
+    margin: 0;
+}
+
+.nav-link,
+.navbar-nav .nav-link {
+    color: var(--text-color);
+    background-color: transparent;
+    border-radius: .25rem;
+    transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out;
+}
+
+.nav-link:hover,
+.navbar-nav .nav-link:hover {
+    color: #0056b3;
+    background-color: #f8f9fa;
+}
+
+.navbar .btn {
+    margin-left: .5rem;
+}

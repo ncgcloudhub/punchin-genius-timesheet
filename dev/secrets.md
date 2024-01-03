@@ -29,6 +29,19 @@ port: 5432
 
 ---
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'stritstax.com'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'no-reply@stritstax.com'
+EMAIL_HOST_PASSWORD = 'T!metracker@Punchin23!'
+
+---
+
+email: trionxai@gmail.com
+google app pw: ltmv kigw akdh afki
+
+--
 Installation Directory: C:\Program Files\PostgreSQL\16
 Server Installation Directory: C:\Program Files\PostgreSQL\16
 Data Directory: C:\Program Files\PostgreSQL\16\data

@@ -1,0 +1,27 @@
+<!-- /templates/core/user_profile_settings.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-4">
+    <h2>User Profile Settings</h2>
+    <form method="post" action="">
+        {% csrf_token %}
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" name="first_name" id="first_name" placeholder="First Name" value="{{ user.first_name }}">
+            <label for="first_name">First Name</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" name="last_name" id="last_name" placeholder="Last Name" value="{{ user.last_name }}">
+            <label for="last_name">Last Name</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" name="phone_number" id="phone_number" placeholder="Phone Number" value="{{ profile.phone_number }}">
+            <label for="phone_number">Phone Number</label>
+        </div>
+        <!-- Include other fields as necessary -->
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+    <!-- Link to Change Password Page (assuming you're using Django's auth views) -->
+    <a href="{% url 'password_change' %}" class="btn btn-link">Change Password</a>
+</div>
+{% endblock %}

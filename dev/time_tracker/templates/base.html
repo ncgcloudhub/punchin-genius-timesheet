@@ -1,79 +1,72 @@
-<!-- /templates/base.html --> 
-
+<!-- /templates/base.html -->
 
 {% load static %}
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Punchin Genius Time Tracker{% endblock %}</title>
-    <!-- Bootstrap CSS CDN -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{% static 'css/punchin.css' %}">
-    <!-- Link to your CSS files here -->
-</head>
-<body>
+    <!-- Bootstrap CSS and Minty Theme from Bootswatch -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/5.0.2/minty/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="{% static 'css/punchin.css' %}" />
+  </head>
+
+  <body>
     <header>
-        <!-- Common header content like navigation bar -->
-        <!-- Ensure Sign Out only shows for logged-in users -->
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{% url 'core:employee_dashboard' %}">Punchin Genius Time Tracker</a>
         {% if user.is_authenticated %}
-        <a href="{% url 'logout' %}" class="btn btn-danger">Sign Out</a>
-        {% endif %}
-    </header>
-    <main>
-        {% if messages %}
-        <div>
-            {% for message in messages %}
-            <div class="{% if message.tags %}alert {{ message.tags }}{% endif %}">{{ message }}</div>
-            {% endfor %}
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Menu
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                <li><a class="dropdown-item" href="{% url 'core:user_profile_settings' %}">User Profile</a></li>
+                <li><a class="dropdown-item" href="{% url 'core:employee_dashboard' %}">Employee Dashboard</a></li>
+                {% if user.is_employer %}
+                <li><a class="dropdown-item" href="{% url 'employer:employer_dashboard' %}">Employer Dashboard</a></li>
+                {% endif %}
+                <li><a class="dropdown-item" href="{% url 'user_app_settings' %}">Settings</a></li>
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="{% url 'logout' %}">Sign Out</a></li>
+              </ul>
+            </li>
+          </ul>
         </div>
         {% endif %}
-    <nav>
-        <!-- If the user is not authenticated, show the login, employee registration, and employer registration links -->
-        {% if not user.is_authenticated %}
-        <a href="{% url 'login' %}" class="btn btn-link">Login</a> |
-        <a href="{% url 'register' %}" class="btn btn-link">Employee Registration</a> |
-        <!-- No namespace required as it's at project level -->
-        <a href="{% url 'employer:register_user' %}" class="btn btn-link">Employer Registration</a>
-        <!-- Using 'employer' namespace -->
-        {% endif %}
-    </nav>
-        {% block content %}
-        <!-- Your base HTML content here -->
-        {% endblock %}
+      </nav>
+    </header>
+    <main class="container mt-4">
+      {% if messages %}
+      <div class="alert alert-info">
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% block content %}
+      <!-- Page specific content will go here -->
+      {% endblock %}
     </main>
-    <footer>
-        <!-- Common footer content -->
+    <footer class="footer mt-auto py-3 bg-light">
+      <div class="container">
+        <span class="text-muted">Place sticky footer content here.</span>
+      </div>
     </footer>
-    <!-- Bootstrap JS and Popper.js CDN -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-    <script>
-        // This is a simple example and may need to be adapted for your specific form fields and logic.
-        window.onload = function () {
-            // Save form data to session storage when the user navigates from the first step
-            var userForm = document.getElementById('userRegistrationForm');
-            if (userForm) {
-                userForm.onsubmit = function () {
-                    sessionStorage.setItem('firstName', document.getElementById('id_first_name').value);
-                    // Repeat for other fields...
-                };
-            }
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
 
-            // Retrieve and display confirmation message after the second step
-            var registrationComplete = sessionStorage.getItem('registrationComplete');
-            if (registrationComplete) {
-                alert('Thank you for registering!'); // Replace with a more sophisticated confirmation message
-                sessionStorage.removeItem('registrationComplete'); // Clean up
-            }
-        };
-    </script>
-
-    </body>
-    
 </html>
-
-
