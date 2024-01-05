@@ -5,7 +5,9 @@
 {% block content %}
 <form action="{% url 'logout' %}" method="post">
     {% csrf_token %}
-    <button type="submit" class="btn btn-primary">Logout</button>
+    <button type="submit" class="btn btn-danger">Log Out</button>
 </form>
-
+<div class="container text-center">
+    <h2>You have been logged out successfully.</h2>
+</div>
 {% endblock %}
