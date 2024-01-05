@@ -3,9 +3,9 @@
 
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login, get_user_model, authenticate
+from django.contrib.auth import login, logout, get_user_model, authenticate
 from .models import TimeEntry, EmployeeProfile
 from .forms import TimeEntryForm, RegisterForm
 from django.db.models import Sum, Avg
@@ -152,10 +152,23 @@ class CustomLoginView(LoginView):
 
 
 class CustomLogoutView(LogoutView):
-    template_name = 'core/logout.html'  # Specify the custom logout template
-    # Redirect to the 'login' URL after logout
-    next_page = reverse_lazy('core:login')
+    template_name = 'core/logout.html'
+    next_page = reverse_lazy('login')  # Where to redirect after logout
 
+    def dispatch(self, request, *args, **kwargs):
+        if request.method.lower() == 'post':
+            # Clear all previous messages
+            storage = messages.get_messages(request)
+            for message in storage:
+                # This will remove the message from the queue
+                pass
+            storage.used = True
+            
+            logout(request)
+            messages.success(request, "You have successfully logged out.")
+            return redirect(self.next_page)
+        else:
+            return super().dispatch(request, *args, **kwargs)
 
 # Employee dashboard view in core/views.py
 # checks whether the user is authenticated and is either a superuser (is_superuser) or has the is_employee attribute set to True.
