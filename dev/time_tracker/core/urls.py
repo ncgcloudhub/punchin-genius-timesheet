@@ -17,6 +17,6 @@ urlpatterns = [
     path('dashboard-redirect/', views.dashboard_redirect,
          name='dashboard_redirect'),
     path('apply-employer/', views.apply_employer, name='apply_employer'),
-    path('test-dashboard/', views.test_dashboard, name='test_dashboard'),
+    # path('test-dashboard/', views.test_dashboard, name='test_dashboard'),
     # Add other app-specific URLs here
 ]

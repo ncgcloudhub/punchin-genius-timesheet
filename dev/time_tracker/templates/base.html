@@ -3,7 +3,7 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="height: 100%;">
 
   <head>
     <meta charset="UTF-8" />
@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="{% static 'css/punchin.css' %}" />
   </head>
 
-  <body>
+  <body class="d-flex flex-column" style="height: 100%;">
     <header>
       <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="{% url 'core:employee_dashboard' %}">Punchin Genius Time Tracker</a>
@@ -26,9 +26,10 @@
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
           <ul class="navbar-nav ms-auto">
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <!-- Update the button class to 'btn-success' for success color -->
+              <button class="btn btn-success dropdown-toggle" type="button" id="navbarDropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
                 Menu
-              </a>
+              </button>
               <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                 <li><a class="dropdown-item" href="{% url 'core:user_profile_settings' %}">User Profile</a></li>
                 <li><a class="dropdown-item" href="{% url 'core:employee_dashboard' %}">Employee Dashboard</a></li>
@@ -52,7 +53,7 @@
         {% endif %}
       </nav>
     </header>
-    <main class="container mt-4">
+    <main class="container mt-4 flex-shrink-0">
       {% if messages %}
       <div class="alert alert-info">
         {% for message in messages %}
@@ -66,7 +67,7 @@
     </main>
     <footer class="footer mt-auto py-3 bg-light">
       <div class="container">
-        <span class="text-muted">Place sticky footer content here.</span>
+        <span class="text-muted">PunchIn Genius Time Tracker | Copyright (c) TrionxAI.com</span>
       </div>
     </footer>
     <!-- Bootstrap 5 JS -->

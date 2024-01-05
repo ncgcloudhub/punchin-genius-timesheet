@@ -20,6 +20,10 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.db import transaction
 from django.conf import settings
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+from django.views.generic import ListView
+from .models import Employer
 
 # Create your views here.
 # Constants for URLs
@@ -46,11 +50,14 @@ def can_access_employer_dashboard(user):
 def handle_superuser(request):
     # Superuser logic here
     print("Superuser bypassing employer profile check.")
-    # You might want to retrieve all employers or perform some other logic for superusers.
-    # For example, let's assume you just list all employers.
+    # Retrieve all employers
     employers = Employer.objects.all()
-    context = {'employers': employers}
+    # Get the count of employers
+    employer_count = employers.count()
+    # Pass both employers and employer_count to your template
+    context = {'employers': employers, 'employer_count': employer_count}
     return render(request, 'employer/employer_dashboard.html', context)
+
 
 
 def handle_regular_user(request):
@@ -65,6 +72,27 @@ def handle_regular_user(request):
     return render(request, 'employer/employer_dashboard.html', context)
 
 
+def is_superuser(user):
+    return user.is_superuser
+
+@user_passes_test(is_superuser, login_url='login')
+def employer_list(request):
+    employers = Employer.objects.all()
+    return render(request, 'employer/employer_list.html', {'employers': employers})
+
+
+class EmployerListView(ListView):
+    model = Employer
+    template_name = 'employer/employer_list.html'  # your template name
+    context_object_name = 'employers'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        print(context)  # print the context to the console
+        return context
+    
+
+
 @login_required
 @user_passes_test(can_access_employer_dashboard, login_url=LOGIN_URL)
 @permission_required('employer.can_view_employer_dashboard', raise_exception=True)
@@ -72,13 +100,15 @@ def employer_dashboard(request):
     try:
         if request.user.is_superuser:
             return handle_superuser(request)
-        elif hasattr(request.user, 'employerprofile'):
+        elif hasattr(request.user, 'employeeprofile') and request.user.employeeprofile.employer is not None:
             return handle_regular_user(request)
         else:
             raise PermissionDenied("You are not allowed to view this page.")
     except PermissionDenied as e:
         # Handle the PermissionDenied exception, e.g., return an error page or redirect to a custom error page.
         return render(request, 'access_denied.html')
+
+
 
 
 @login_required
@@ -139,23 +169,27 @@ def register_user(request):
             with transaction.atomic():
                 user = user_form.save(commit=False)
                 user.is_employer = True
+                user.is_staff = True  # If you want the employer to also be a staff member
                 user.save()
-                login(request, user,
-                      backend='django.contrib.auth.backends.ModelBackend')
+                # Give the user permission to view the employer dashboard
+                permission = Permission.objects.get(codename='can_view_employer_dashboard')
+                user.user_permissions.add(permission)
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 return redirect('employer:register_employer_details')
     else:
         user_form = RegisterForm()
-
-    return render(request, 'employer/register_user.html', {'form': user_form})
+    return render(request, 'core/register.html', {'form': user_form})
 
 
 @login_required
 def register_employer_details(request):
-    # Initialize the form
     if request.method == 'POST':
         employer_form = EmployerRegistrationForm(request.POST)
-
         if employer_form.is_valid():
+            employer_email = employer_form.cleaned_data['employer_email_address']
+            if Employer.objects.filter(employer_email_address=employer_email).exists():
+                messages.error(request, "Employer with this email already exists.")
+                return render(request, 'employer/register_employer_details.html', {'employer_form': employer_form})
             # Create but don't commit the save yet
             employer = employer_form.save(commit=False)
             employer.user = request.user  # Associate the user
@@ -170,6 +204,11 @@ def register_employer_details(request):
             employer.save()
             request.user.is_employer = True  # Mark the user as an employer
             request.user.save()
+
+            # Link the employer to the user's EmployeeProfile
+            employee_profile, created = EmployeeProfile.objects.get_or_create(user=request.user)
+            employee_profile.employer = employer
+            employee_profile.save()
 
             # Redirect to a confirmation page or employer dashboard
             # Redirect to the confirmation page or another page for the next step

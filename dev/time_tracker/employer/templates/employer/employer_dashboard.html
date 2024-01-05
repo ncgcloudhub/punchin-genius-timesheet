@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h1>Employee Dashboard</h1>
+    <h1>Employer Dashboard</h1>
 
     {% if user.is_authenticated %}
     <div>
@@ -19,9 +19,9 @@
         <img src="{{ user.profile_image_url }}" alt="Profile Icon" class="profile-icon">
         <span>Welcome, {{ user.username }}. Today's date is {{ now|date:"F j, Y" }}</span>
         {% if user|can_access_employer_dashboard %}
-        <a href="{% url 'employer:employer_dashboard' %}" class="btn btn-primary">Employer Dashboard</a>
+        <a href="{% url 'core:employee_dashboard' %}" class="btn btn-primary">Employer Dashboard</a>
         {% endif %}
-        <a href="{% url 'core:logout' %}" class="btn btn-danger">Log Out</a>
+        <a href="{% url 'logout' %}" class="btn btn-danger">Log Out</a>
     </div>
     {% else %}
     <p>Please <a href="{% url 'login' %}">login</a> to access the employee dashboard.</p>

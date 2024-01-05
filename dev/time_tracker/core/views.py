@@ -26,7 +26,7 @@ import logging
 from django.db import transaction
 from django.core.mail import EmailMessage, BadHeaderError
 from .forms import EmployeeLinkForm
-# from .models import Invitation
+from employer.models import Employer
 
 
 # Configure a logger for your application
@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 
 # Create your views here.
 User = get_user_model()
+
 
 
 def can_access_employee_dashboard(user):
@@ -173,17 +174,20 @@ class CustomLogoutView(LogoutView):
 # Employee dashboard view in core/views.py
 # checks whether the user is authenticated and is either a superuser (is_superuser) or has the is_employee attribute set to True.
 @login_required
-# @user_passes_test(can_access_employee_dashboard, login_url=reverse_lazy('core:login'))
 def employee_dashboard(request):
-    # Print out to the console for debugging
     print("Is the user authenticated?", request.user.is_authenticated)
-    # Check if the user is associated with an employer and provide the option to apply for an employer account if not
     context = {
         'now': timezone.now(),
         'is_employer': request.user.is_employer,
         'can_apply_for_employer': not request.user.is_employer,
     }
-    # Include any logic you want specifically for the employee dashboard
+    # Check if the user is a superuser
+    if request.user.is_superuser:
+        # If the user is a superuser, get the count of all employers
+        employer_count = Employer.objects.count()
+        # Add employer_count to the context
+        context['employer_count'] = employer_count
+
     return render(request, 'core/employee_dashboard.html', context)
 
 
@@ -241,6 +245,7 @@ def join_employer(request):
         form = EmployeeLinkForm()
 
     return render(request, 'core/join_employer.html', {'form': form})
+
 
 
 @login_required
@@ -391,6 +396,6 @@ def accept_invitation(request):
     return render(request, 'core/accept_invitation.html', {'form': form})
 
 
-@login_required
-def test_dashboard(request):
-    return render(request, 'core/test_dashboard.html', {'now': timezone.now()})
+#@login_required
+#def test_dashboard(request):
+#    return render(request, 'core/test_dashboard.html', {'now': timezone.now()})
