@@ -1,0 +1,41 @@
+<!-- \employer\templates\employer\employer_list.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h2>Employer List</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Employer ID</th>
+                        <th>Name</th>
+                        <th>EIN</th>
+                        <th>Phone Number</th>
+                        <th>Email</th>
+                        <th>Contact/Admin</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employer in employers %}
+                    <tr>
+                        <td>{{ employer.employer_id }}</td>
+                        <td>{{ employer.employer_name }}</td>
+                        <td>{{ employer.employer_ein }}</td>
+                        <td>{{ employer.employer_phone_number }}</td>
+                        <td>{{ employer.employer_email }}</td>
+                        <td>{{ employer.employer_contact_admin }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">No employers found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

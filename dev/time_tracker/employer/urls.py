@@ -18,4 +18,5 @@ urlpatterns = [
     path('accept-invitation/<uuid:token>/',
          views.accept_invitation, name='accept_invitation'),
     path('list-time-entries/', list_time_entries, name='list_time_entries'),
+    path('employer-list/', views.EmployerListView.as_view(), name='employer_list'),
 ]
