@@ -8,11 +8,13 @@
     cursor: pointer;
     outline: none;
     color: #fff;
-    background-color: #007bff;
+    background-color: #78C2AD;
     border: none;
     border-radius: 5px;
     box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.15);
     transition: all 0.3s ease 0s;
+    display: block;         /* Needed to apply margin auto */
+    margin: 0 auto;        /* Centers the button horizontally inside the card */
 }
 
 .btn:hover {
@@ -193,6 +195,8 @@ a:hover {
     /* Adjusts the top margin for better spacing */
     box-shadow: 0 4px 8px rgba(0, 0, 0, .05);
     /* Adds a subtle shadow to make the card pop out */
+    text-align: center;
+        /* Centers text inside the card */
 }
 
 .card-header {
@@ -296,6 +300,8 @@ body {
     background-color: var(--dropdown-hover-color);
 }
 
+
+
 /* Responsive adjustment */
 @media (max-width: 768px) {
     .dropdown-menu {
@@ -304,16 +310,28 @@ body {
     }
 }
 
-.dropdown-item:hover,
-.dropdown-item:focus {
-    background-color: var(--dropdown-hover-color);
-}
 
 .dropdown-item.active,
 .dropdown-item:active {
-    background-color: #007bff;
-    color: white;
+    background-color: #198754;
+    /* A darker green shade for active state */
+    color: #fff;
+    /* White text for contrast */
 }
+
+
+/* Dropdown item hover and active styles */
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: #d1e7dd;
+    /* A light green shade for hover state */
+    color: #155724;
+    /* Dark green text for readability */
+   
+}
+
+
+
 
 .nav-item,
 .navbar-nav .nav-link {
@@ -337,4 +355,88 @@ body {
 
 .navbar .btn {
     margin-left: .5rem;
+}
+
+/* Card style */
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: none;
+    color: #333;
+    font-weight: bold;
+}
+
+.card-body {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centers content vertically inside the card */
+}
+
+.card-title {
+    font-size: 1rem;
+}
+
+.card-text {
+    font-size: 1.5rem;
+}
+
+/* You can adjust the following colors to match your theme */
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
+
+/* Make sure the grid layout is responsive */
+@media (max-width: 768px) {
+    .col-md-4 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+/* Rest of the CSS remains the same */
+
+.card-title {
+    font-size: 2rem;
+    /* Adjust the size if needed */
+    color: #333;
+}
+
+/* Adding this to ensure the count is displayed larger */
+.card h1 {
+    font-size: 3rem;
+    /* Adjust the size if needed */
+    font-weight: bold;
+    color: #007bff;
+    /* Adjust the color if needed */
+}
+
+/* This ensures that the button sticks to the bottom of the card */
+.mt-auto {
+    margin-top: auto;
+}
+
+/* footer */
+html,
+body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.footer {
+    background-color: #f8f9fa;
+    /* Other styles remain the same */
 }

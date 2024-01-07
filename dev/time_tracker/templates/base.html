@@ -57,7 +57,7 @@
       {% if messages %}
       <div class="alert alert-info">
         {% for message in messages %}
-        <p>{{ message }}</p>
+        <div class="{{ message.tags }}">{{ message }}</div>
         {% endfor %}
       </div>
       {% endif %}
@@ -72,6 +72,23 @@
     </footer>
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Custom script -->
+    <script>
+      $(document).ready(function () {
+        // Find all input elements with an 'invalid-feedback' sibling
+        $('input').each(function () {
+          if ($(this).siblings('.invalid-feedback').length > 0) {
+            // If an input has an 'invalid-feedback' sibling, add the 'is-invalid' class to it
+            $(this).addClass('is-invalid');
+          }
+        });
+      });
+    </script>
+
   </body>
 
 </html>

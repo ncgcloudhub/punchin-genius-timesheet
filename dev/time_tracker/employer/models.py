@@ -10,6 +10,8 @@ from django.core.exceptions import ValidationError
 from phonenumber_field.modelfields import PhoneNumberField
 from django.conf import settings
 from django import forms
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 
 import logging
 
@@ -45,10 +47,26 @@ class Employer(models.Model):
         max_length=20, blank=True, null=True)  # Optional EIN number
 
     def save(self, *args, **kwargs):
-        """Override save method to ensure a unique employer_id is generated."""
-        if not self.employer_id:
-            self.employer_id = generate_employer_id()
+        # Check if this is a new employer
+        is_new = self.pk is None
+
         super(Employer, self).save(*args, **kwargs)
+
+        if is_new:
+            # This is a new employer, so this user is the first user
+            # Add the 'can_view_employer_dashboard' permission to the user
+            # Get all permissions
+            permissions = Permission.objects.all()
+
+            # Get the 'can_view_employer_dashboard' permission
+            # content_type = ContentType.objects.get_for_model(Employer)
+            # permission = Permission.objects.get(
+            #    codename='can_view_employer_dashboard',
+            #    content_type=content_type,
+            # )
+
+            # Add the permission to the user
+            self.user.user_permissions.add(permissions)
 
     def create_invitation(self, email):
         """Create an invitation with a 7-day expiration date."""

@@ -7,7 +7,7 @@ from .import views
 app_name = 'core'
 
 urlpatterns = [
-    path('account/user_profile_settings/',
+    path('account/user-profile-settings/',
          views.user_profile_settings, name='user_profile_settings'),
     path('entries/', views.list_time_entries, name='list-entries'),
     path('clock-in/', views.clock_in, name='clock_in'),

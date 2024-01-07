@@ -47,7 +47,8 @@ class PunchinUser(AbstractBaseUser, PermissionsMixin):
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    is_employer = models.BooleanField(default=False)
+    is_employer = models.BooleanField(
+        default=False, verbose_name='Employer Status')
 
     objects = UserManager()
 

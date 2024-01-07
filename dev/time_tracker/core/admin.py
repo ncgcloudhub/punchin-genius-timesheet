@@ -31,13 +31,14 @@ class UserAdmin(BaseUserAdmin):
 
     # Since PunchinUser uses 'email' instead of 'username', adjust fields accordingly
     list_display = ('email', 'first_name', 'last_name',
-                    'is_active', 'is_staff')
-    list_filter = ('is_staff', 'is_superuser', 'is_active',)
+                    'is_active', 'is_staff', 'is_employer')
+    list_filter = ('is_staff', 'is_superuser', 'is_employer', 'is_active',)
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name')}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
-        # Add more fields here if needed
+        ('Permissions', {'fields': ('is_active',
+         'is_staff', 'is_employer', 'is_superuser')}),
+        # Add field here to display it in the Django admin interface
     )
     add_fieldsets = (
         (None, {
