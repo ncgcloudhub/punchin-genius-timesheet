@@ -3,8 +3,13 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
-from .models import Employer, EmployeeProfile, PunchinUser, TimeEntry
-from employer.models import Invitation
+# from .models import Employer, EmployeeProfile, PunchinUser, TimeEntry
+from .models import EmployeeProfile, PunchinUser, TimeEntry
+from django.apps import apps
+
+
+if apps.is_installed('employer'):
+    from employer.models import Invitation
 
 
 User = get_user_model()
@@ -28,7 +33,8 @@ class RegisterForm(UserCreationForm):
     phone_number = forms.CharField(widget=forms.TextInput(
         attrs={'placeholder': 'Phone Number'}), required=True)
     agree_terms = forms.BooleanField(
-        label="Agree to terms and conditions *", required=True)  # Added the asterisk here in label
+        # Added the asterisk here in label
+        label="Agree to terms and conditions *", required=True)
 
     class Meta:
         model = PunchinUser
@@ -60,4 +66,19 @@ class RegisterForm(UserCreationForm):
 
 class EmployeeLinkForm(forms.Form):
     invitation_token = forms.CharField(max_length=255)
-    # Add validation to check the token against EmployeeProfile instances
+
+    def clean_invitation_token(self):
+        token = self.cleaned_data.get('invitation_token')
+        if apps.is_installed('employer'):
+            # Perform the checks and validation using the Invitation model
+            try:
+                invitation = Invitation.objects.get(token=token)
+                # ... rest of your validation logic
+            except Invitation.DoesNotExist:
+                raise forms.ValidationError("Invalid invitation token.")
+        else:
+            # Handle cases when employer app is not installed.
+            # Maybe raise a validation error or provide a default behavior.
+            raise forms.ValidationError(
+                "Invitation functionality not available.")
+        return token

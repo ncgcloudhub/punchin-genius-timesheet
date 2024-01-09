@@ -20,7 +20,7 @@ urlpatterns = [
          name='account_activation_sent'),
     path('accept-invitation/<uuid:token>/',
          views.accept_invitation, name='accept_invitation'),
-    path('list/', views.employer_list, name='employer_list'),
+    path('employer-list/', views.employer_list, name='employer_list'),
     path('employer-list-view/', views.EmployerListView.as_view(),
          name='employer_list_view'),
     path('activate/<uidb64>/<token>/',

@@ -1,6 +1,6 @@
 # core/views.py --> app specific views
 
-
+from django.apps import apps
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
@@ -26,21 +26,22 @@ import logging
 from django.db import transaction
 from django.core.mail import EmailMessage, BadHeaderError
 from .forms import EmployeeLinkForm
-from employer.models import Employer
 from django.contrib.auth.models import Group
-from employer.models import EmployerProfile
 
 
-
-
-
+# Conditional import
+if apps.is_installed('employer'):
+    from employer.models import Employer
+    from employer.models import EmployerProfile
+    # Other necessary imports from the employer app
+else:
+    Employer = None  # Or some other fallback handling
 
 # Configure a logger for your application
 logger = logging.getLogger(__name__)
 
 # Create your views here.
 User = get_user_model()
-
 
 
 def can_access_employee_dashboard(user):
@@ -170,7 +171,7 @@ class CustomLogoutView(LogoutView):
                 # This will remove the message from the queue
                 pass
             storage.used = True
-            
+
             logout(request)
             messages.success(request, "You have successfully logged out.")
             return redirect(self.next_page)
@@ -179,15 +180,17 @@ class CustomLogoutView(LogoutView):
 
 # Employee dashboard view in core/views.py
 # checks whether the user is authenticated and is either a superuser (is_superuser) or has the is_employee attribute set to True.
+
+
 @login_required
 def employee_dashboard(request):
     print("Is the user authenticated?", request.user.is_authenticated)
     context = {
-            'now': timezone.now(),
-            'is_employer': request.user.is_employer,
-            'associated_with_employer': hasattr(request.user, 'employeeprofile') and request.user.employeeprofile.employer is not None,
-            'can_apply_for_employer': not request.user.is_employer and not hasattr(request.user, 'employeeprofile'),
-        }
+        'now': timezone.now(),
+        'is_employer': request.user.is_employer,
+        'associated_with_employer': hasattr(request.user, 'employeeprofile') and request.user.employeeprofile.employer is not None,
+        'can_apply_for_employer': not request.user.is_employer and not hasattr(request.user, 'employeeprofile'),
+    }
     # Check if the user is a superuser
     if request.user.is_superuser:
         # If the user is a superuser, get the count of all employers
@@ -209,15 +212,13 @@ def dashboard_redirect(request):
         # Handle login failure logic...
 
 
-from django.db import transaction
-
-
 @login_required
 @transaction.atomic
 def apply_employer(request):
     # Check if the user is already an employer or associated with an employer
     if request.user.is_employer or (hasattr(request.user, 'employeeprofile') and request.user.employeeprofile.employer):
-        messages.info(request, "You are already an employer or associated with an employer.")
+        messages.info(
+            request, "You are already an employer or associated with an employer.")
         return redirect('core:employee_dashboard')
 
     if request.method == 'POST':
@@ -230,17 +231,21 @@ def apply_employer(request):
         request.user.save()
 
         # Create an EmployerProfile for this user if it doesn't exist
-        employer_profile, created = EmployerProfile.objects.get_or_create(user=request.user)
+        employer_profile, created = EmployerProfile.objects.get_or_create(
+            user=request.user)
         if created:
             # Optionally set additional fields on employer_profile
             employer_profile.save()
 
-        messages.success(request, "You have successfully applied to be an employer and are now the admin of the employer account.")
+        messages.success(
+            request, "You have successfully applied to be an employer and are now the admin of the employer account.")
         # Redirect to a page where the user can complete their employer profile details
         return redirect('employer:register_employer_details')
     else:
         # If the method is GET, show a confirmation page to apply as an employer
         return render(request, 'core/apply_employer.html')
+
+
 '''
 # Testing purpose only:
 @login_required
@@ -254,6 +259,7 @@ def apply_employer(request):
     else:
         return render(request, 'core/apply_employer.html')
 '''
+
 
 @login_required
 def join_employer(request):
@@ -279,7 +285,6 @@ def join_employer(request):
         form = EmployeeLinkForm()
 
     return render(request, 'core/join_employer.html', {'form': form})
-
 
 
 @login_required
@@ -428,8 +433,3 @@ def accept_invitation(request):
     else:
         form = EmployeeLinkForm()
     return render(request, 'core/accept_invitation.html', {'form': form})
-
-
-#@login_required
-#def test_dashboard(request):
-#    return render(request, 'core/test_dashboard.html', {'now': timezone.now()})

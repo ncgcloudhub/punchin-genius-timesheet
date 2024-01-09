@@ -26,35 +26,36 @@ from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic import ListView
-from .models import Employer
 from django.conf import settings
 from django.utils.encoding import force_str
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from .tokens import employer_activation_token
+from django.shortcuts import get_object_or_404
 
 
 import logging
 
-# Create a logger
+# Get the user model
+User = get_user_model()
+
+# Create a logger for logging error or information
 logger = logging.getLogger(__name__)
 
-# Create your views here.
-# Constants for URLs
-LOGIN_URL = 'login'  # URL of the login page
+# Login URL Constant
+LOGIN_URL = 'login'
 
-User = get_user_model()  # Define the User object
+# Employer dashboard URL Constant
+EMPLOYER_DASHBOARD_URL = 'employer_dashboard'
 
-EMPLOYER_DASHBOARD_URL = 'employer_dashboard'  # URL of the employer dashboard
 
-# Generate the uid and token
-user = User.objects.first()  # Replace with your user object
-uid = urlsafe_base64_encode(force_bytes(user.pk))
-token = employer_activation_token.make_token(user)
+def get_first_user():
+    return User.objects.first()
 
 
 @login_required
+# Dashboard redirect function
 def dashboard_redirect(request):
     if hasattr(request.user, 'employerprofile'):
         # URL name for employer's dashboard
@@ -62,6 +63,25 @@ def dashboard_redirect(request):
     else:
         # URL name for employee's dashboard
         return redirect('core:employee_dashboard')
+
+# Now generate the token
+# Utility Functions
+
+
+def generate_token_for_user(user):
+    if user is not None:
+        return employer_activation_token.make_token(user)
+    else:
+        logger.error("User object is None when generating token")
+        return None
+
+
+def get_uid_for_user(user):
+    if user is not None:
+        return urlsafe_base64_encode(force_bytes(user.pk))
+    else:
+        return None
+
 
 # checks whether the user is authenticated and is either a superuser (is_superuser) or has the is_employer attribute set to True.
 
@@ -116,6 +136,7 @@ class EmployerListView(ListView):
 
 
 @login_required
+@user_passes_test(can_access_employer_dashboard, login_url=LOGIN_URL)
 @permission_required('employer.can_view_employer_dashboard', raise_exception=True)
 def employer_dashboard(request):
     try:
@@ -143,8 +164,8 @@ def employer_dashboard(request):
 
 '''
 @login_required
-# @user_passes_test(can_access_employer_dashboard, login_url=LOGIN_URL)
-# @permission_required('employer.can_view_employer_dashboard', raise_exception=True)
+@user_passes_test(can_access_employer_dashboard, login_url=LOGIN_URL)
+@permission_required('employer.can_view_employer_dashboard', raise_exception=True)
 def employer_dashboard(request):
     try:
         if request.user.is_superuser:
@@ -212,6 +233,8 @@ def register_employer_details(request):
             employer = employer_form.save(commit=False)
             employer.user = request.user
             employer.save()
+            EmployeeProfile.objects.create(
+                user=employer.user, employer=employer)  # Create EmployeeProfile
             send_activation_email(employer)  # Send the activation email
             messages.success(
                 request, 'Registration successful! Please check your email to activate your account.')
@@ -247,7 +270,8 @@ def confirm_registration(request):
 def send_email_invitation(invitation):
     # Define the email properties
     subject = 'You have been invited to join our platform'
-    message = f'Hi, you have been invited to join our platform. Please use this invitation: {invitation}'
+    message = f'Hi, you have been invited to join our platform. Please use this invitation: {
+        invitation}'
     recipient_list = [invitation.email]  # Replace with the employee's email
 
     # Send the email using the utility function
@@ -264,7 +288,8 @@ def send_invitation(request):
             invitation.expiration_date = timezone.now() + timezone.timedelta(days=7)
             invitation.save()
 
-            invitation_link = f"{settings.MY_DOMAIN}{reverse('employer:accept_invitation', args=[invitation.token])}"
+            invitation_link = f"{settings.MY_DOMAIN}{
+                reverse('employer:accept_invitation', args=[invitation.token])}"
 
             subject = 'You have been invited to join our platform'
             html_message = render_to_string('employer/email/invitation_email.html', {

@@ -2,6 +2,11 @@
 
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 import six
+# Adjust according to your actual User model
+from django.contrib.auth import get_user_model
+
+
+User = get_user_model()
 
 
 class EmployerActivationTokenGenerator(PasswordResetTokenGenerator):

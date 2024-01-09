@@ -1,16 +1,18 @@
 # core/models.py --> app specific models
 
 import random
-from django.db import models
-from django.conf import settings
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-from django.core.exceptions import ValidationError
 
+from django.conf import settings
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, AbstractUser
+from django.core.exceptions import ValidationError
+from django.db import models
 # Assuming Employer model is correctly defined in employer.models
-from employer.models import Employer
+# from employer.models import Employer
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.apps import apps  # Import the apps module from django.apps
+from django.db import connection
+from django.db.utils import OperationalError, ProgrammingError
 
 
 # UserManager definition
@@ -44,6 +46,9 @@ class PunchinUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=70, null=True, blank=True)
     last_name = models.CharField(max_length=150, null=True, blank=True)
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+    # REQUIRED_FIELDS = ['username']
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -52,11 +57,37 @@ class PunchinUser(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    def save(self, *args, **kwargs):
+        # Call the "real" save() method.
+        super().save(*args, **kwargs)
+        # Only proceed if the database table for EmployeeProfile exists
+        try:
+            # Only proceed if the database table for EmployeeProfile exists
+            if 'core_employeeprofile' in connection.introspection.table_names():
+                EmployeeProfile = apps.get_model('core', 'EmployeeProfile')
+                EmployeeProfile.objects.get_or_create(user=self)
+        except (OperationalError, ProgrammingError):
+            # Handle the error or ignore if it's due to missing tables during initial migration
+            pass
+
+        # Create EmployeeProfile if it doesn't exist. #
+        # EmployeeProfile = apps.get_model('core', 'EmployeeProfile')
+        # EmployeeProfile.objects.get_or_create(user=self)
 
     def __str__(self):
         return self.email
+
+
+@receiver(post_save, sender=PunchinUser)
+def create_employee_profile(sender, instance, created, **kwargs):
+    if created:
+        try:
+            EmployeeProfile = apps.get_model('core', 'EmployeeProfile')
+            EmployeeProfile.objects.get_or_create(user=instance)
+        except (OperationalError, ProgrammingError):
+            # If tables aren't ready, this will skip creating EmployeeProfile
+            pass
+
 
 # Time Entry model for tracking work time
 
@@ -72,15 +103,18 @@ class TimeEntry(models.Model):
     def __str__(self):
         return f"{self.user.email} - {self.clock_in}"
 
-# EmployeeProfile model
-
 
 class EmployeeProfile(models.Model):
+    # EmployeeProfile model
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    employer = models.ForeignKey(
-        Employer, on_delete=models.SET_NULL, null=True, blank=True)
+    # Use apps.get_model() to import Employer dynamically
+    employer = models.OneToOneField(
+        'employer.Employer', on_delete=models.CASCADE)
     # Additional fields can be added here as needed
+
+    # def save(self, *args, **kwargs):
+    #    Employer = apps.get_model('employer', 'Employer')
 
     def __str__(self):
         return f"{self.user.email} profile"
@@ -91,11 +125,24 @@ class EmployeeProfile(models.Model):
 
 
 @receiver(post_save, sender=PunchinUser)
+def create_employee_profile(sender, instance, created, **kwargs):
+    if created:
+        try:
+            # Attempt to get or create the EmployeeProfile
+            EmployeeProfile = apps.get_model('core', 'EmployeeProfile')
+            EmployeeProfile.objects.get_or_create(user=instance)
+        except (OperationalError, ProgrammingError):
+            # If tables aren't ready, this will skip creating EmployeeProfile
+            pass
+
+
+'''
+@receiver(post_save, sender=PunchinUser)
 def create_employer_profile(sender, instance, created, **kwargs):
     if created and instance.is_employer:  # Assuming 'is_employer' is a field on the user model
         # Lazy import of the EmployerProfile model
         EmployerProfile = apps.get_model('employer', 'EmployerProfile')
         EmployerProfile.objects.create(user=instance)
+'''
 
-
-post_save.connect(create_employer_profile, sender=PunchinUser)
+# post_save.connect(create_employer_profile, sender=PunchinUser)

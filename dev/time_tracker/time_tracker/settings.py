@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
 ]
 
+# As an example, you might have a flag like this
+INCLUDE_EMPLOYER_APP = True  # True or False, depending on your needs
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -85,7 +87,18 @@ WSGI_APPLICATION = "time_tracker.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'timetracker_db',
+        'USER': 'postgres',
+        'PASSWORD': 'P0stgresadmin23!',
+        'HOST': 'localhost',  # Or an IP Address that your DB is hosted on
+        'PORT': '5432',
+    }
+}
 
+'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -96,7 +109,7 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-
+'''
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

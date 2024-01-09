@@ -22,12 +22,16 @@ from django.contrib.auth import views as auth_views
 from core import views as core_views
 # Import the custom_login view
 from core.views import CustomLoginView, CustomLogoutView
+from django.conf import settings
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),  # Admin site
     path('core/', include('core.urls')),
-    path('employer/', include('employer.urls')),
+
+    # Conditional inclusion of employer URLs
+    path('employer/', include('employer.urls')
+         ) if settings.INCLUDE_EMPLOYER_APP else None,
 
     # Authentication Views
 
@@ -56,3 +60,10 @@ urlpatterns = [
     # Include the default Django authentication URLs for good measure (includes 'logout')
     path('accounts/', include('django.contrib.auth.urls')),
 ]
+
+
+# Conditional inclusion of employer URLs (moved inside the above urlpatterns)
+# if settings.INCLUDE_EMPLOYER_APP:
+#    urlpatterns += [
+#        path('employer/', include('employer.urls')),
+#    ]

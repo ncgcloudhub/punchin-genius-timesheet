@@ -12,6 +12,8 @@ from django.conf import settings
 from django import forms
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+# from core.models import EmployeeProfile
+from django.apps import apps
 
 import logging
 
@@ -46,11 +48,16 @@ class Employer(models.Model):
     employer_ein_number = models.CharField(
         max_length=20, blank=True, null=True)  # Optional EIN number
 
+    employee_profile = models.OneToOneField(
+        'core.EmployeeProfile', on_delete=models.CASCADE, related_name='employer_profile')
+
     def save(self, *args, **kwargs):
+        EmployeeProfile = apps.get_model('core', 'EmployeeProfile')
         # Check if this is a new employer
         is_new = self.pk is None
 
-        super(Employer, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)  # Call the "real" save() method.
+        # super(Employer, self).save(*args, **kwargs)
 
         if is_new:
             # This is a new employer, so this user is the first user
@@ -67,6 +74,9 @@ class Employer(models.Model):
 
             # Add the permission to the user
             self.user.user_permissions.add(permissions)
+
+        # Create EmployeeProfile if it doesn't exist.
+        EmployeeProfile.objects.get_or_create(employer=self)
 
     def create_invitation(self, email):
         """Create an invitation with a 7-day expiration date."""
@@ -103,5 +113,6 @@ class Invitation(models.Model):
 class EmployerProfile(models.Model):
     """Model representing additional details specific to employer profiles."""
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='employerprofile')
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    website = models.URLField(max_length=200, null=True, blank=True)
     # Add additional fields as required
