@@ -11,13 +11,26 @@ DATABASES = {
 
 ---
 
+==================================
+Automating with Scripts
+You can also run these commands from a shell script or directly by passing them to the psql command using the -c flag. For example:
+
+bash
+Copy code
+
+# psql -U username -d databasename -c "CREATE DATABASE mynewdatabase;"
+
+# Make sure you are using these commands wisely and understand the implications, especially when dropping databases, as this can lead to irreversible data loss. Always ensure you have recent backups of any important data.
+
+=================================
+
 time_tracker secrets:
 db name: timetracker_db
 
 django db:
 super user: saiful / admin (changed to use email address)
 trionxai@gmail.com
-pw: T!metrackerdb23!
+pw: T!metracker23!
 
 ---
 
