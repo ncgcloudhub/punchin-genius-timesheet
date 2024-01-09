@@ -1,11 +1,24 @@
-<!-- \templates\core\account_activation_sent.html-->
+<!-- \templates\core\account_activation_invalid.html-->
 
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block content %}
-
-<p>The activation link was invalid, possibly because it has already been used. Please try registering again or contact
-    support.</p>
-
-
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-center">Account Activation</h2>
+                </div>
+                <div class="card-body">
+                    <p class="text-center">Your activation link is invalid or has already been used.</p>
+                    <p class="text-center">If you have already activated your account, you can login below.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

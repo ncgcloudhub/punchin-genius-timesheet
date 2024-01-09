@@ -1,8 +1,8 @@
 <!-- templates/core/register.html -->
 
 {% extends 'base.html' %}
-{% load static %} <!-- Load your static files if necessary -->
-{% load form_helpers %}
+{% load static %}
+{% load form_helpers form_tags %}
 
 
 {% block content %}
@@ -13,14 +13,14 @@
     {% for field in form %}
     {% if field.name == 'agree_terms' %}
     <div class="mb-3 form-check">
-      {{ field|add_class:'form-check-input' }}
+      {{ field|add_classes:'form-control' }}
       <label class="form-check-label" for="{{ field.id_for_label }}">
         {{ field.label }}
       </label>
     </div>
     {% else %}
     <div class="form-floating mb-3">
-      {{ field|add_class:'form-control' }}
+      {{ field|add_classes:'form-control' }}
       <label for="{{ field.id_for_label }}">{{ field.field.widget.attrs.placeholder|default:field.label }}</label>
       {% if field.help_text %}
       <small class="form-text text-muted">{{ field.help_text }}</small>
