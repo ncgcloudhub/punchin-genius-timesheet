@@ -48,8 +48,8 @@ class Employer(models.Model):
     employer_ein_number = models.CharField(
         max_length=20, blank=True, null=True)  # Optional EIN number
 
-    employee_profile = models.OneToOneField(
-        'core.EmployeeProfile', on_delete=models.CASCADE, related_name='employer_profile')
+    # employee_profile = models.ForeignKey(
+    #    'core.EmployeeProfile', on_delete=models.SET_NULL, null=True, blank=True, related_name='employer')
 
     def save(self, *args, **kwargs):
         EmployeeProfile = apps.get_model('core', 'EmployeeProfile')

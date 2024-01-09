@@ -7,9 +7,6 @@ from .models import PunchinUser, TimeEntry, EmployeeProfile
 from django.apps import apps
 
 
-# Inline definition
-
-
 class EmployeeProfileInline(admin.StackedInline):
     # Define an inline admin descriptor for EmployeeProfile model
     # which acts a bit like a singleton
@@ -54,14 +51,6 @@ if apps.is_installed('employer'):
 
     # Add EmployerInline to the UserAdmin inlines
     UserAdmin.inlines.append(EmployerInline)
-
-
-# class EmployerInline(admin.StackedInline):
-    # Define an inline admin descriptor for Employer model
-#    model = Employer
-#    can_delete = False
-#    verbose_name_plural = 'employers'
-#    extra = 1
 
 
 admin.site.register(PunchinUser, UserAdmin)
