@@ -89,6 +89,20 @@ def create_employee_profile(sender, instance, created, **kwargs):
             pass
 
 
+@receiver(post_save, sender=PunchinUser)
+def create_employee_profile(sender, instance, created, **kwargs):
+    if created and not instance.is_superuser:
+        try:
+            EmployeeProfile = apps.get_model('core', 'EmployeeProfile')
+            # Create EmployeeProfile only if instance is not a superuser
+            # and logic to determine if an employer should be associated
+            employer = None  # Logic to determine the correct employer, if any
+            EmployeeProfile.objects.get_or_create(
+                user=instance, employer=employer)
+        except (OperationalError, ProgrammingError):
+            pass
+
+
 # Time Entry model for tracking work time
 
 
@@ -108,9 +122,8 @@ class EmployeeProfile(models.Model):
     # EmployeeProfile model
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    # Use apps.get_model() to import Employer dynamically
-    employer = models.OneToOneField(
-        'employer.Employer', on_delete=models.CASCADE)
+    employer = models.ForeignKey(
+        'employer.Employer', on_delete=models.SET_NULL, null=True, blank=True, related_name='employee_profiles')
     # Additional fields can be added here as needed
 
     # def save(self, *args, **kwargs):
@@ -144,5 +157,3 @@ def create_employer_profile(sender, instance, created, **kwargs):
         EmployerProfile = apps.get_model('employer', 'EmployerProfile')
         EmployerProfile.objects.create(user=instance)
 '''
-
-# post_save.connect(create_employer_profile, sender=PunchinUser)
