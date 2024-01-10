@@ -224,6 +224,7 @@ def apply_employer(request):
     if request.method == 'POST':
         # When the form is submitted, make the user an employer and admin for the employer account
         request.user.is_employer = True
+        request.user.save()
         # Make the user a staff member and potentially part of the admin group
         request.user.is_staff = True
         admin_group, _ = Group.objects.get_or_create(name='EmployerAdmins')

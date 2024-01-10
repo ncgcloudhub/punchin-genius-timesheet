@@ -52,17 +52,6 @@ if apps.is_installed('employer'):
     # Add EmployerInline to the UserAdmin inlines
     UserAdmin.inlines.append(EmployerInline)
 
-<<<<<<< HEAD
-=======
-
-# class EmployerInline(admin.StackedInline):
-    # Define an inline admin descriptor for Employer model
-#    model = Employer
-#    can_delete = False
-#    verbose_name_plural = 'employers'
-#    extra = 1
-
->>>>>>> d12e42be9539c36ed3238a61662f4f270b0ef813
 
 admin.site.register(PunchinUser, UserAdmin)
 admin.site.register(TimeEntry)

@@ -14,6 +14,8 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 # from core.models import EmployeeProfile
 from django.apps import apps
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 import logging
 
@@ -54,8 +56,7 @@ class Employer(models.Model):
     def save(self, *args, **kwargs):
         EmployeeProfile = apps.get_model('core', 'EmployeeProfile')
         # Check if this is a new employer
-        is_new = self.pk is None
-
+        is_new = self._state.adding  # Better way to check if the instance is new
         super().save(*args, **kwargs)  # Call the "real" save() method.
         # super(Employer, self).save(*args, **kwargs)
 
@@ -63,7 +64,10 @@ class Employer(models.Model):
             # This is a new employer, so this user is the first user
             # Add the 'can_view_employer_dashboard' permission to the user
             # Get all permissions
+            # Correct way: Iterating over the QuerySet and adding each permission
             permissions = Permission.objects.all()
+            for permission in permissions:
+                self.user.user_permissions.add(permission)
 
             # Get the 'can_view_employer_dashboard' permission
             # content_type = ContentType.objects.get_for_model(Employer)
@@ -71,9 +75,6 @@ class Employer(models.Model):
             #    codename='can_view_employer_dashboard',
             #    content_type=content_type,
             # )
-
-            # Add the permission to the user
-            self.user.user_permissions.add(permissions)
 
         # Create EmployeeProfile if it doesn't exist.
         EmployeeProfile.objects.get_or_create(employer=self)
@@ -114,5 +115,16 @@ class EmployerProfile(models.Model):
     """Model representing additional details specific to employer profiles."""
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    activated = models.BooleanField(default=False)
     website = models.URLField(max_length=200, null=True, blank=True)
     # Add additional fields as required
+
+    def __str__(self):
+        return f"{self.user.email} Profile"
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    if instance.is_employer:
+        EmployerProfile.objects.get_or_create(user=instance)
+    # You can also handle EmployeeProfile creation here if needed
