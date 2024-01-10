@@ -247,21 +247,6 @@ def apply_employer(request):
         return render(request, 'core/apply_employer.html')
 
 
-'''
-# Testing purpose only:
-@login_required
-def apply_employer(request):
-    if request.method == 'POST':
-        request.user.is_employer = True
-        request.user.save()
-
-        messages.success(request, "You have successfully applied to be an employer.")
-        return redirect('employer:employer_dashboard')
-    else:
-        return render(request, 'core/apply_employer.html')
-'''
-
-
 @login_required
 def join_employer(request):
     if request.method == 'POST':

@@ -34,6 +34,8 @@ class TimeEntryForm(forms.ModelForm):
 
 class EmployerRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)  # Add this line
+    password_confirm = forms.CharField(
+        widget=forms.PasswordInput, label='Confirm Password')
     agree_terms = forms.BooleanField(
         label=mark_safe(
             'I agree to the <a href="/path-to-terms-and-conditions" target="_blank">terms and conditions</a>'),
@@ -51,6 +53,16 @@ class EmployerRegistrationForm(forms.ModelForm):
             'employer_address', 'employer_city', 'employer_state', 'employer_zip_code',
             'employer_ein_number', 'password'  # Add 'password' to this list
         ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        password_confirm = cleaned_data.get('password_confirm')
+
+        if password and password_confirm and password != password_confirm:
+            self.add_error('password_confirm', "Passwords don't match")
+
+        return cleaned_data
 
     def __init__(self, *args, **kwargs):
         super(EmployerRegistrationForm, self).__init__(*args, **kwargs)
@@ -73,9 +85,10 @@ class EmployerRegistrationForm(forms.ModelForm):
                         email=employer.employer_email_address,
                         password=self.cleaned_data.get("password")
                     )
-                employer.user = user
-                employer.save()
+                    user.save()
 
+                employer.user = user
+                employer.save()  # Now you can save the employer instance
                 EmployerProfile.objects.create(user=user)
             except Exception as e:
                 logger.error(f"Error creating user for employer: {e}")
