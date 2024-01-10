@@ -77,7 +77,7 @@ class Employer(models.Model):
             # )
 
         # Create EmployeeProfile if it doesn't exist.
-        EmployeeProfile.objects.get_or_create(employer=self)
+        # EmployeeProfile.objects.get_or_create(employer=self)
 
     def create_invitation(self, email):
         """Create an invitation with a 7-day expiration date."""

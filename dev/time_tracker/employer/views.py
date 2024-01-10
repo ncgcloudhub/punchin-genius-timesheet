@@ -151,6 +151,8 @@ def employer_dashboard(request):
             else:
                 logger.info(
                     "User has an employeeprofile but it is not associated with an employer")
+                # Add a return statement here
+                return redirect(LOGIN_URL)
         else:
             logger.info(
                 "User is not a superuser and does not have an employeeprofile")
@@ -235,8 +237,7 @@ def register_employer_details(request):
         if employer_form.is_valid():
             employer = employer_form.save(commit=False)
             employer.user = request.user
-            employer.user.save()  # Save the user instance
-            employer.save()  # Now you can save the employer instance
+            employer.save()  # Save the employer instance with the associated user
             send_activation_email(employer)  # Send the activation email
             messages.success(
                 request, 'Registration successful! Please check your email to activate your account.')
@@ -360,3 +361,23 @@ def send_activation_email(employer):
 
     # Send the email using the utility function
     send_email(subject, '', recipient_list, html_message=html_message)
+
+
+def assign_employer_permissions(user):
+    # Get the content type for the Employer and EmployeeProfile models
+    employer_content_type = ContentType.objects.get(
+        app_label='employer', model='employer')
+    employeeprofile_content_type = ContentType.objects.get(
+        app_label='core', model='employeeprofile')
+
+    # Get the permissions for the Employer and EmployeeProfile models
+    employer_permissions = Permission.objects.filter(
+        content_type=employer_content_type)
+    employeeprofile_permissions = Permission.objects.filter(
+        content_type=employeeprofile_content_type)
+
+    # Assign the permissions to the user
+    for perm in employer_permissions:
+        user.user_permissions.add(perm)
+    for perm in employeeprofile_permissions:
+        user.user_permissions.add(perm)

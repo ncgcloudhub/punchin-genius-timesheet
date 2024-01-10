@@ -60,19 +60,6 @@ class PunchinUser(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs):
         # Call the "real" save() method.
         super().save(*args, **kwargs)
-        # Only proceed if the database table for EmployeeProfile exists
-        try:
-            # Only proceed if the database table for EmployeeProfile exists
-            if 'core_employeeprofile' in connection.introspection.table_names():
-                EmployeeProfile = apps.get_model('core', 'EmployeeProfile')
-                EmployeeProfile.objects.get_or_create(user=self)
-        except (OperationalError, ProgrammingError):
-            # Handle the error or ignore if it's due to missing tables during initial migration
-            pass
-
-        # Create EmployeeProfile if it doesn't exist. #
-        # EmployeeProfile = apps.get_model('core', 'EmployeeProfile')
-        # EmployeeProfile.objects.get_or_create(user=self)
 
     def __str__(self):
         return self.email
