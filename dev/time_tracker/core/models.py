@@ -78,31 +78,6 @@ class PunchinUser(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
-@receiver(post_save, sender=PunchinUser)
-def create_employee_profile(sender, instance, created, **kwargs):
-    if created:
-        try:
-            EmployeeProfile = apps.get_model('core', 'EmployeeProfile')
-            EmployeeProfile.objects.get_or_create(user=instance)
-        except (OperationalError, ProgrammingError):
-            # If tables aren't ready, this will skip creating EmployeeProfile
-            pass
-
-
-@receiver(post_save, sender=PunchinUser)
-def create_employee_profile(sender, instance, created, **kwargs):
-    if created and not instance.is_superuser:
-        try:
-            EmployeeProfile = apps.get_model('core', 'EmployeeProfile')
-            # Create EmployeeProfile only if instance is not a superuser
-            # and logic to determine if an employer should be associated
-            employer = None  # Logic to determine the correct employer, if any
-            EmployeeProfile.objects.get_or_create(
-                user=instance, employer=employer)
-        except (OperationalError, ProgrammingError):
-            pass
-
-
 # Time Entry model for tracking work time
 
 
@@ -123,7 +98,12 @@ class EmployeeProfile(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     employer = models.ForeignKey(
-        'employer.Employer', on_delete=models.SET_NULL, null=True, blank=True, related_name='employee_profiles')
+        'employer.Employer',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='employee_profiles'  # Descriptive related name
+    )
     # Additional fields can be added here as needed
 
     # def save(self, *args, **kwargs):
@@ -137,23 +117,13 @@ class EmployeeProfile(models.Model):
 # Assuming 'EmployerProfile' is the model name for the employer's profile
 
 
-@receiver(post_save, sender=PunchinUser)
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_employee_profile(sender, instance, created, **kwargs):
-    if created:
+    # Create EmployeeProfile only if the user is neither a superuser nor an employer
+    if created and not instance.is_superuser and not instance.is_employer:
+        EmployeeProfile = apps.get_model('core', 'EmployeeProfile')
         try:
-            # Attempt to get or create the EmployeeProfile
-            EmployeeProfile = apps.get_model('core', 'EmployeeProfile')
             EmployeeProfile.objects.get_or_create(user=instance)
         except (OperationalError, ProgrammingError):
             # If tables aren't ready, this will skip creating EmployeeProfile
             pass
-
-
-'''
-@receiver(post_save, sender=PunchinUser)
-def create_employer_profile(sender, instance, created, **kwargs):
-    if created and instance.is_employer:  # Assuming 'is_employer' is a field on the user model
-        # Lazy import of the EmployerProfile model
-        EmployerProfile = apps.get_model('employer', 'EmployerProfile')
-        EmployerProfile.objects.create(user=instance)
-'''

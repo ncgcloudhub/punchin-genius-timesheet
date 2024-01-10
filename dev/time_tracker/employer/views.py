@@ -187,15 +187,18 @@ def accept_invitation(request, token):
 
     invitation = get_object_or_404(Invitation, token=token, is_accepted=False)
     if invitation.expiration_date >= timezone.now():
-        user = request.user
-        employee_profile, created = EmployeeProfile.objects.get_or_create(
-            user=user)
-        employee_profile.employer = invitation.employer
-        employee_profile.save()
-        invitation.is_accepted = True
-        invitation.save()
-        # Send confirmation email here (use Django's send_mail function)
-        return HttpResponse('Invitation accepted.')
+        if invitation.employer.is_activated:  # Make sure employer is activated
+            user = request.user
+            employee_profile, created = EmployeeProfile.objects.get_or_create(
+                user=user)
+            employee_profile.employer = invitation.employer
+            employee_profile.save()
+            invitation.is_accepted = True
+            invitation.save()
+            # Send confirmation email here (use Django's send_mail function)
+            return HttpResponse('Invitation accepted.')
+        else:
+            return HttpResponse('Employer is not activated.', status=403)
     else:
         return HttpResponse('Invitation has expired.', status=410)
 
@@ -225,16 +228,15 @@ def register_user(request):
     return render(request, 'core/register.html', {'form': user_form})
 
 
-@login_required
+# @login_required
 def register_employer_details(request):
     if request.method == 'POST':
         employer_form = EmployerRegistrationForm(request.POST)
         if employer_form.is_valid():
             employer = employer_form.save(commit=False)
             employer.user = request.user
-            employer.save()
-            EmployeeProfile.objects.create(
-                user=employer.user, employer=employer)  # Create EmployeeProfile
+            employer.user.save()  # Save the user instance
+            employer.save()  # Now you can save the employer instance
             send_activation_email(employer)  # Send the activation email
             messages.success(
                 request, 'Registration successful! Please check your email to activate your account.')
@@ -265,6 +267,37 @@ def confirm_registration(request):
         'user_data': user_data,
         'employer_data': employer_data
     })
+
+
+def activate_employer(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and employer_activation_token.check_token(user, token):
+        user.is_active = True
+        user.is_employer = True  # Set user as employer here
+        user.is_staff = True  # Set user as staff here
+        # Assuming you have an `activated` field in your `EmployerProfile` model
+        # user.employerprofile.activated = True
+        user.save()
+        login(request, user)
+
+        employer_profile, created = EmployerProfile.objects.get_or_create(
+            user=user)
+        employer_profile.activated = True  # Activate the profile
+        employer_profile.save()
+
+        # Assign employer-specific permissions here
+        assign_employer_permissions(user)
+
+        # Redirect to the employer dashboard
+        return redirect('employer:employer_dashboard')
+    else:
+        # Render a page to inform the employer that the activation link is invalid
+        return render(request, 'employer/account_activation_invalid.html')
 
 
 def send_email_invitation(invitation):
@@ -327,23 +360,3 @@ def send_activation_email(employer):
 
     # Send the email using the utility function
     send_email(subject, '', recipient_list, html_message=html_message)
-
-
-def activate_employer(request, uidb64, token):
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
-
-    if user is not None and employer_activation_token.check_token(user, token):
-        user.is_active = True
-        # Assuming you have an `activated` field in your `EmployerProfile` model
-        user.employerprofile.activated = True
-        user.save()
-        login(request, user)
-        # Redirect to the employer dashboard
-        return redirect('employer:employer_dashboard')
-    else:
-        # Render a page to inform the employer that the activation link is invalid
-        return render(request, 'employer/account_activation_invalid.html')
