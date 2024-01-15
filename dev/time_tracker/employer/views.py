@@ -1,41 +1,38 @@
 # employer/views.py
 
 
-from django.contrib.auth.decorators import login_required, permission_required
-from django.contrib.auth import get_user_model  # Import get_user_model
-from django.core.exceptions import PermissionDenied
-from django.shortcuts import render, redirect
-from django.template.loader import render_to_string
-from .utils import send_email  # Import the missing function
-from django.urls import reverse
-from django.core.mail import send_mail
-from django.shortcuts import render, redirect, get_object_or_404
-from core.models import TimeEntry, EmployeeProfile, PunchinUser
-# from .models import Employer, Invitation  # Import from employer.models
-# Import EmployerProfile from employer.models
-from employer.models import Employer, Invitation, EmployerProfile
-from core.forms import RegisterForm
-from .forms import TimeEntryForm, EmployerInvitationForm, EmployerRegistrationForm
-from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
-from django.utils import timezone
-from django.http import HttpResponse, HttpResponseForbidden
+# Django imports
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
-from django.db import transaction
-from django.conf import settings
+from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.views.generic import ListView
-from django.conf import settings
-from django.utils.encoding import force_str
 from django.contrib.sites.shortcuts import get_current_site
+from django.contrib.auth import get_user_model
+from django.core.exceptions import PermissionDenied
+from django.core.mail import send_mail
+from django.db import transaction, IntegrityError
+from django.http import HttpResponse, HttpResponseForbidden
+from django.shortcuts import render, redirect, get_object_or_404
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
+from django.views.generic import ListView
+from django.core.exceptions import ValidationError
+
+
+# Local imports
+from core.models import TimeEntry, EmployeeProfile, PunchinUser
+# from core.forms import RegisterForm
+from employer.models import Employer, Invitation, EmployerProfile
+from .forms import TimeEntryForm, EmployerInvitationForm, EmployerRegistrationForm
 from .tokens import employer_activation_token
-from django.shortcuts import get_object_or_404
-
-
+from .utils import send_email, assign_employer_permissions
 import logging
+
 
 # Get the user model
 User = get_user_model()
@@ -105,13 +102,17 @@ def handle_superuser(request):
 def handle_regular_user(request):
     # Regular user with employer profile logic here
     print("User has an employer profile.")
-    employer_id = request.user.employerprofile.employer_id
-    employees = request.user.employerprofile.employee_set.all()
-    context = {
-        'employees': employees,
-        'employer_id': employer_id
-    }
-    return render(request, 'employer/employer_dashboard.html', context)
+    employerprofile = getattr(request.user, 'employerprofile', None)
+    if employerprofile is not None:
+        employer = getattr(employerprofile, 'employer', None)
+        if employer is not None:
+            employees = EmployeeProfile.objects.filter(employer=employer)
+            context = {
+                'employees': employees,
+                'employer_id': employer.id
+            }
+            return render(request, 'employer/employer_dashboard.html', context)
+    return HttpResponse("Employer or EmployerProfile not found.", status=404)
 
 
 def is_superuser(user):
@@ -151,8 +152,11 @@ def employer_dashboard(request):
             else:
                 logger.info(
                     "User has an employeeprofile but it is not associated with an employer")
-                # Add a return statement here
-                return redirect(LOGIN_URL)
+                # Automatically associate the user with the employer
+                employer = Employer.objects.get(user=request.user)
+                request.user.employeeprofile.employer = employer
+                request.user.employeeprofile.save()
+                return handle_regular_user(request)
         else:
             logger.info(
                 "User is not a superuser and does not have an employeeprofile")
@@ -162,24 +166,6 @@ def employer_dashboard(request):
         logger.error("Permission denied: %s", e)
         # Handle the PermissionDenied exception, e.g., return an error page or redirect to a custom error page.
         return render(request, 'employer/access_denied.html')
-
-
-'''
-@login_required
-@user_passes_test(can_access_employer_dashboard, login_url=LOGIN_URL)
-@permission_required('employer.can_view_employer_dashboard', raise_exception=True)
-def employer_dashboard(request):
-    try:
-        if request.user.is_superuser:
-            return handle_superuser(request)
-        elif hasattr(request.user, 'employeeprofile') and request.user.employeeprofile.employer is not None:
-            return handle_regular_user(request)
-        else:
-            raise PermissionDenied("You are not allowed to view this page.")
-    except PermissionDenied as e:
-        # Handle the PermissionDenied exception, e.g., return an error page or redirect to a custom error page.
-        return render(request, 'employer/access_denied.html')
-'''
 
 
 def accept_invitation(request, token):
@@ -209,65 +195,57 @@ def invitation_sent(request):
     return render(request, 'employer/invitation_sent.html')
 
 
-def register_user(request):
+def register_employer(request):
     if request.method == 'POST':
-        user_form = RegisterForm(request.POST)
-        if user_form.is_valid():
-            with transaction.atomic():
-                user = user_form.save(commit=False)
-                user.is_employer = True
-                user.is_staff = True  # If you want the employer to also be a staff member
-                user.save()
-                # Give the user permission to view the employer dashboard
-                permission = Permission.objects.get(
-                    codename='can_view_employer_dashboard')
-                user.user_permissions.add(permission)
-                login(request, user,
-                      backend='django.contrib.auth.backends.ModelBackend')
-                return redirect('employer:register_employer_details')
-    else:
-        user_form = RegisterForm()
-    return render(request, 'core/register.html', {'form': user_form})
+        form = EmployerRegistrationForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email'].strip()
+            # Check if the email already exists in the database
+            if User.objects.filter(email__iexact=email).exists():
+                messages.error(
+                    request, 'An account with this email already exists.')
+                logger.warning(
+                    f"Attempt to register with existing email: {email}")
+                return render(request, 'employer/register_employer.html', {'form': form})
+            else:
+                try:
+                    with transaction.atomic():
+                        # Create User and set it as an employer
+                        user = User.objects.create_user(
+                            email=email,
+                            password=form.cleaned_data['password'],
+                            is_employer=True,
+                            is_active=False  # User will be inactive until they activate via email
+                        )
 
+                        # Create Employer Profile
+                        employer_profile = EmployerProfile.objects.create(
+                            user=user)
 
-# @login_required
-def register_employer_details(request):
-    if request.method == 'POST':
-        employer_form = EmployerRegistrationForm(request.POST)
-        if employer_form.is_valid():
-            employer = employer_form.save(commit=False)
-            employer.user = request.user
-            employer.save()  # Save the employer instance with the associated user
-            send_activation_email(employer)  # Send the activation email
-            messages.success(
-                request, 'Registration successful! Please check your email to activate your account.')
-            return redirect('employer:account_activation_sent')
+                        # Send Activation Email
+                        send_activation_email(user, employer_profile)
+
+                        messages.success(
+                            request, 'Registration successful! Please check your email to activate your account.')
+                        return redirect('employer:account_activation_sent')
+                except Exception as e:
+                    logger.error(f"Unexpected error during registration: {e}")
+                    messages.error(
+                        request, 'An unexpected error occurred. Please try again.')
         else:
-            messages.error(request, "Please correct the errors below.")
+            # If the form is not valid, display the form with errors
+            logger.error(f"Form validation errors: {form.errors}")
+            messages.error(request, 'Please correct the errors below.')
     else:
-        employer_form = EmployerRegistrationForm()
+        # If the request method is not POST, display an empty form
+        form = EmployerRegistrationForm()
 
-    return render(request, 'employer/register_employer_details.html', {'form': employer_form})
+    # Render the form
+    return render(request, 'employer/register_employer.html', {'form': form})
 
 
 def account_activation_sent(request):
     return render(request, 'employer/account_activation_sent.html')
-
-
-@login_required
-def confirm_registration(request):
-    # Retrieve user and employer data from the session
-    user_data = request.session.get('user_data', None)
-    employer_data = request.session.get('employer_data', None)
-
-    if not user_data or not employer_data:
-        return redirect('employer:register_user')
-
-    # Render a confirmation page displaying user and employer data
-    return render(request, 'employer/confirm_registration.html', {
-        'user_data': user_data,
-        'employer_data': employer_data
-    })
 
 
 def activate_employer(request, uidb64, token):

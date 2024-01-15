@@ -10,9 +10,9 @@ app_name = 'employer'
 urlpatterns = [
     path('dashboard-redirect/', views.dashboard_redirect,
          name='dashboard_redirect'),
-    path('register/user/', views.register_user, name='register_user'),
-    path('register-employer/', views.register_employer_details,
-         name='register_employer_details'),
+    # path('register/user/', views.register_user, name='register_user'),
+    path('register-employer/', views.register_employer,
+         name='register_employer'),
     path('dashboard/', views.employer_dashboard, name='employer_dashboard'),
     path('invitation/sent/', views.invitation_sent, name='invitation_sent'),
     path('invitation/send/', views.send_invitation, name='send_invitation'),

@@ -25,11 +25,11 @@ class EmployerAdminForm(forms.ModelForm):
 @admin.register(Employer)
 class EmployerAdmin(admin.ModelAdmin):
     # Add other fields you want to display in the admin list view
-    list_display = ('employer_id', 'employer_name', 'employer_address', 'employer_city', 'employer_state',
-                    'employer_zip_code', 'employer_email_address', 'employer_phone_number', 'employer_ein_number')
+    list_display = ('employer_id', 'employer_ein_number', 'employer_name', 'employer_address', 'employer_city', 'employer_state',
+                    'employer_zip_code', 'employer_email_address', 'employer_phone_number')
     readonly_fields = ('employer_id',)
-    fields = ('employer_id', 'user', 'employer_name', 'employer_address', 'employer_city', 'employer_state',
-              'employer_zip_code', 'employer_email_address', 'employer_phone_number', 'employer_ein_number')
+    fields = ('employer_id', 'user', 'employer_ein_number', 'employer_name', 'employer_address', 'employer_city', 'employer_state',
+              'employer_zip_code', 'employer_email_address', 'employer_phone_number')
     # Make sure the 'fields' attribute includes the new fields in the desired order
 
 

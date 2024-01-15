@@ -207,19 +207,41 @@ os.makedirs(LOGGING_DIR, exist_ok=True)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',  # Set the logging level to DEBUG
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(LOGGING_DIR, 'debug.log'),
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
         },
+        # Add other formatters here if needed
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',  # Capture all levels of logs
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',  # Use the verbose formatter
+        },
+        # Add other handlers here if needed
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],  # Log to console for Django related logs
+            'level': 'WARNING',  # 'DEBUG',  # Adjust the level as needed
+            'propagate': True,
+        },
+        # Define other loggers here if needed
     },
     'root': {
-        'handlers': ['file'],
-        'level': 'DEBUG',  # Set the root logger level to DEBUG
+        'handlers': ['console'],  # Log to console for all logs
+        'level': 'DEBUG',  # Adjust the level as needed
     },
 }
 
+# Add to your settings.py
+if DEBUG:
+    LOGGING['loggers']['django.db.backends'] = {
+        'level': 'DEBUG',
+        'handlers': ['console'],
+    }
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
