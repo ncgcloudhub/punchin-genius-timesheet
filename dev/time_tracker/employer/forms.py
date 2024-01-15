@@ -1,5 +1,6 @@
 # \employer\forms.py
 
+from .models import Employer, EmployerProfile
 from django import forms
 # Assuming TimeEntry model is in employer/models.py
 from core.models import TimeEntry
@@ -7,13 +8,12 @@ from .models import Employer, Invitation
 from django.contrib.auth import get_user_model
 from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 import logging
 from phonenumber_field.formfields import PhoneNumberField
 from phonenumber_field.widgets import PhoneNumberPrefixWidget
 from phonenumber_field.phonenumber import PhoneNumber as OriginalPhoneNumber
-from .models import EmployerProfile
 
 
 logger = logging.getLogger(__name__)
@@ -33,67 +33,60 @@ class TimeEntryForm(forms.ModelForm):
 
 
 class EmployerRegistrationForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)  # Add this line
+    employer_phone_number = PhoneNumberField(
+        widget=PhoneNumberPrefixWidget(initial='US'),
+        help_text='Enter a valid phone number (e.g. 2125552368).'
+    )
+    email = forms.EmailField()
+    password = forms.CharField(widget=forms.PasswordInput)
     password_confirm = forms.CharField(
         widget=forms.PasswordInput, label='Confirm Password')
     agree_terms = forms.BooleanField(
         label=mark_safe(
-            'I agree to the <a href="/path-to-terms-and-conditions" target="_blank">terms and conditions</a>'),
+            'I agree to the <a href="/terms" target="_blank">terms and conditions</a>'),
         required=True
-    )
-    employer_phone_number = PhoneNumberField(
-        widget=PhoneNumberPrefixWidget(initial='US'),
-        help_text='Enter a valid phone number (e.g. +12125552368).'
     )
 
     class Meta:
         model = Employer
-        fields = [
-            'employer_name', 'employer_email_address', 'employer_phone_number',
-            'employer_address', 'employer_city', 'employer_state', 'employer_zip_code',
-            'employer_ein_number', 'password'  # Add 'password' to this list
-        ]
+        fields = ['employer_name', 'employer_address', 'employer_city',
+                  'employer_state', 'employer_zip_code', 'employer_ein_number',
+                  'employer_phone_number', 'email', 'password']
 
     def clean(self):
         cleaned_data = super().clean()
         password = cleaned_data.get('password')
         password_confirm = cleaned_data.get('password_confirm')
-
         if password and password_confirm and password != password_confirm:
             self.add_error('password_confirm', "Passwords don't match")
-
         return cleaned_data
 
-    def __init__(self, *args, **kwargs):
-        super(EmployerRegistrationForm, self).__init__(*args, **kwargs)
-        for field in self.fields:
-            self.fields[field].widget.attrs.update({
-                'class': 'form-control',
-                'placeholder': self.fields[field].label
-            })
-        self.fields['agree_terms'].widget.attrs.update({'class': ''})
-
     def save(self, commit=True):
+        UserModel = get_user_model()
+        user = UserModel.objects.create_user(
+            email=self.cleaned_data['email'],
+            password=self.cleaned_data['password']
+        )
         employer = super().save(commit=False)
+        employer.user = user
         if commit:
-            try:
-                user = User.objects.filter(
-                    email=employer.employer_email_address).first()
-                if not user:
-                    user = User.objects.create_user(
-                        username=employer.employer_email_address,
-                        email=employer.employer_email_address,
-                        password=self.cleaned_data.get("password")
-                    )
-                    user.save()
-
-                employer.user = user
-                employer.save()  # Now you can save the employer instance
-                EmployerProfile.objects.create(user=user)
-            except Exception as e:
-                logger.error(f"Error creating user for employer: {e}")
-                raise ValidationError(f"Error creating user: {e}")
+            employer.save()
+            EmployerProfile.objects.create(user=user, employer=employer)
         return employer
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email').strip()
+        UserModel = get_user_model()
+        if UserModel.objects.filter(email__iexact=email).exists():
+            raise ValidationError('An account with this email already exists.')
+        return email
+
+    def clean_employer_phone_number(self):
+        phone_number = self.cleaned_data.get('employer_phone_number')
+        if not phone_number.is_valid():
+            raise ValidationError(
+                'Enter a valid phone number with the country code.')
+        return phone_number
 
 
 class EmployerInvitationForm(forms.ModelForm):
