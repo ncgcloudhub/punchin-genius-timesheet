@@ -69,10 +69,12 @@ class EmployerRegistrationForm(forms.ModelForm):
         )
         employer = super().save(commit=False)
         employer.user = user
+        employer_profile = None
         if commit:
             employer.save()
-            EmployerProfile.objects.create(user=user, employer=employer)
-        return employer
+            employer_profile = EmployerProfile.objects.create(
+                user=user, employer=employer)
+        return employer, employer_profile
 
     def clean_email(self):
         email = self.cleaned_data.get('email').strip()

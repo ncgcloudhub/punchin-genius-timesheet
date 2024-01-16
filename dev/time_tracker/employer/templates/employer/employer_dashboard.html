@@ -12,14 +12,14 @@
     <div>
         {% if not request.user.is_employer %}
         <p>Want to register as an employer?</p>
-        <a href="{% url 'employer:register_employer_details' %}" class="btn btn-primary">Apply for Employer</a>
+        <a href="{% url 'employer:register_employer' %}" class="btn btn-primary">Apply for Employer</a>
         {% endif %}
     </div>
     <div class="user-info">
         <img src="{{ user.profile_image_url }}" alt="Profile Icon" class="profile-icon">
         <span>Welcome, {{ user.username }}. Today's date is {{ now|date:"F j, Y" }}</span>
         {% if user|can_access_employer_dashboard %}
-        <a href="{% url 'core:employee_dashboard' %}" class="btn btn-primary">Employer Dashboard</a>
+        <a href="{% url 'employer:employer_dashboard' %}" class="btn btn-primary">Employer Dashboard</a>
         {% endif %}
         <a href="{% url 'logout' %}" class="btn btn-danger">Log Out</a>
     </div>
