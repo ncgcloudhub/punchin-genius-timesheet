@@ -1,5 +1,6 @@
 <!-- templates/core/employee_dashboard.html -->
 
+
 {% extends "base.html" %}
 
 {% load core_extras %}
@@ -23,12 +24,41 @@
         </div>
         {% endif %}
 
-        {% if user.employeeprofile and user.employeeprofile.employer %}
+        {% if user|can_access_employer_dashboard %}
+        <div class="col-md-6">
+            <div class="card mt-4 shadow-sm h-100 bg-warning">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Employer Dashboard</h5>
+                    <a href="{% url 'employer:employer_dashboard' %}" class="btn btn-primary mt-auto">Go to Dashboard</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if user.is_employer %}
+        <div class="col-md-6">
+            <div class="card mt-4 shadow-sm h-100 bg-info">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <p>You are registered as an employer.</p>
+                    <!-- Additional employer-specific information can be displayed here -->
+                </div>
+            </div>
+        </div>
+        {% elif user.employeeprofile and user.employeeprofile.employer %}
         <div class="col-md-6">
             <div class="card mt-4 shadow-sm h-100 bg-primary">
                 <div class="card-body d-flex flex-column justify-content-center">
                     <p>You are associated with an employer: {{ user.employeeprofile.employer }}</p>
                     <!-- Display the employer's name or other details if needed -->
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-md-6">
+            <div class="card mt-4 shadow-sm h-100 bg-secondary">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <p>You are not associated with an employer. Would you like to become one?</p>
+                    <a href="{% url 'core:apply_employer' %}" class="btn btn-primary mt-auto">Apply to Become Employer</a>
                 </div>
             </div>
         </div>

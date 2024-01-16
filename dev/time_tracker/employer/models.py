@@ -113,6 +113,9 @@ class Employer(models.Model):
             # Add more as needed
         ]
 
+    def __str__(self):
+        return self.employer_name
+
 
 class Invitation(models.Model):
     """Model representing an invitation sent to an email to join as an employer."""

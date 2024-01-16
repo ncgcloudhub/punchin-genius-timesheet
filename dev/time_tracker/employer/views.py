@@ -1,4 +1,4 @@
-# employer/views.py
+# employer/views.pymessages
 
 
 # Django imports
@@ -45,6 +45,10 @@ LOGIN_URL = 'login'
 
 # Employer dashboard URL Constant
 EMPLOYER_DASHBOARD_URL = 'employer_dashboard'
+
+
+def is_superuser(user):
+    return user.is_superuser
 
 
 def get_first_user():
@@ -101,22 +105,22 @@ def handle_superuser(request):
 
 def handle_regular_user(request):
     # Regular user with employer profile logic here
+    print("User:", request.user)
     print("User has an employer profile.")
     employerprofile = getattr(request.user, 'employerprofile', None)
+    print("Employer Profile:", employerprofile)
     if employerprofile is not None:
         employer = getattr(employerprofile, 'employer', None)
+        print("Employer:", employer)
         if employer is not None:
             employees = EmployeeProfile.objects.filter(employer=employer)
+            print("Employees:", employees)
             context = {
                 'employees': employees,
                 'employer_id': employer.id
             }
             return render(request, 'employer/employer_dashboard.html', context)
-    return HttpResponse("Employer or EmployerProfile not found.", status=404)
-
-
-def is_superuser(user):
-    return user.is_superuser
+    return HttpResponse("Employer or Employer Profile not found.", status=404)
 
 
 @user_passes_test(is_superuser, login_url='login')
@@ -160,7 +164,7 @@ def employer_dashboard(request):
         else:
             logger.info(
                 "User is not a superuser and does not have an employeeprofile")
-            raise PermissionDenied("You are not allowed to view this page.")
+            # raise PermissionDenied("You are not allowed to view this page.")
     except PermissionDenied as e:
         # Log the exception
         logger.error("Permission denied: %s", e)
@@ -199,32 +203,23 @@ def register_employer(request):
     if request.method == 'POST':
         form = EmployerRegistrationForm(request.POST)
         if form.is_valid():
-            email = form.cleaned_data['email'].strip()
-            # Check if the email already exists in the database
+            email = form.cleaned_data['email'].strip().lower()
+            password = form.cleaned_data['password']
+            employer_name = form.cleaned_data['employer_name']
             if User.objects.filter(email__iexact=email).exists():
                 messages.error(
                     request, 'An account with this email already exists.')
                 logger.warning(
                     f"Attempt to register with existing email: {email}")
-                return render(request, 'employer/register_employer.html', {'form': form})
             else:
                 try:
                     with transaction.atomic():
-                        # Create User and set it as an employer
                         user = User.objects.create_user(
-                            email=email,
-                            password=form.cleaned_data['password'],
-                            is_employer=True,
-                            is_active=False  # User will be inactive until they activate via email
-                        )
-
-                        # Create Employer Profile
-                        employer_profile = EmployerProfile.objects.create(
-                            user=user)
-
-                        # Send Activation Email
+                            email=email, password=password, is_employer=True, is_active=False)
+                        # Get the Employer instance and EmployerProfile
+                        employer, employer_profile = form.save()
+                        # The EmployerProfile is created in the form's save method
                         send_activation_email(user, employer_profile)
-
                         messages.success(
                             request, 'Registration successful! Please check your email to activate your account.')
                         return redirect('employer:account_activation_sent')
@@ -233,14 +228,10 @@ def register_employer(request):
                     messages.error(
                         request, 'An unexpected error occurred. Please try again.')
         else:
-            # If the form is not valid, display the form with errors
             logger.error(f"Form validation errors: {form.errors}")
             messages.error(request, 'Please correct the errors below.')
     else:
-        # If the request method is not POST, display an empty form
         form = EmployerRegistrationForm()
-
-    # Render the form
     return render(request, 'employer/register_employer.html', {'form': form})
 
 
@@ -290,7 +281,28 @@ def send_email_invitation(invitation):
     send_email(subject, message, recipient_list)
 
 
-# This function sends an invitation email to a potential employee.
+def send_email_with_template(user, subject, template_name, context, to_email):
+    # Generate token with expiration
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+    # Construct the activation link
+    context['activation_link'] = f"{
+        settings.MY_DOMAIN}/{template_name}/{uid}/{token}"
+
+    # Define the email properties
+    html_message = render_to_string(
+        f'employer/email/{template_name}.html',
+        context
+    )
+    recipient_list = [to_email]
+
+    # Send the email using the utility function
+    send_email(subject, '', recipient_list, html_message=html_message)
+
+# Usage for sending invitation
+
+
 def send_invitation(request):
     if request.method == 'POST':
         form = EmployerInvitationForm(request.POST)
@@ -300,62 +312,33 @@ def send_invitation(request):
             invitation.expiration_date = timezone.now() + timezone.timedelta(days=7)
             invitation.save()
 
-            invitation_link = f"{settings.MY_DOMAIN}{
-                reverse('employer:accept_invitation', args=[invitation.token])}"
-
-            subject = 'You have been invited to join our platform'
-            html_message = render_to_string('employer/email/invitation_email.html', {
+            context = {
                 'invitation': invitation,
-                'invitation_link': invitation_link
-            })
-            recipient_list = [invitation.email]
-
-            send_email(subject, '', recipient_list, html_message=html_message)
+            }
+            send_email_with_template(
+                request.user, 'You have been invited to join our platform', 'invitation_email', context, invitation.email)
             return redirect('employer:invitation_sent')
-    else:
-        form = EmployerInvitationForm()
-    return render(request, 'employer/send_invitation.html', {'form': form})
+
+# Usage for sending activation email
 
 
-# Sending the activation email to employer email address after employer account registration completed.
 def send_activation_email(employer):
-    # Generate token with expiration
-    token = employer_activation_token.make_token(employer.user)
-    uid = urlsafe_base64_encode(force_bytes(employer.user.pk))
-
-    # Construct the activation link
-    activation_link = f"{settings.MY_DOMAIN}/employer/activate/{uid}/{token}"
-
-    # Define the email properties
-    subject = 'Activate Your Employer Account'
-    html_message = render_to_string(
-        'employer/account_activation_email.html',
-        {
-            'employer': employer,
-            'activation_link': activation_link
-        }
-    )
-    recipient_list = [employer.employer_email_address]
-
-    # Send the email using the utility function
-    send_email(subject, '', recipient_list, html_message=html_message)
+    context = {
+        'employer': employer,
+    }
+    send_email_with_template(employer.user, 'Activate Your Employer Account',
+                             'account_activation_email', context, employer.employer_email_address)
 
 
 def assign_employer_permissions(user):
-    # Get the content type for the Employer and EmployeeProfile models
+    # Get the content type for the Employer model
     employer_content_type = ContentType.objects.get(
         app_label='employer', model='employer')
-    employeeprofile_content_type = ContentType.objects.get(
-        app_label='core', model='employeeprofile')
 
-    # Get the permissions for the Employer and EmployeeProfile models
+    # Get the permissions for the Employer model
     employer_permissions = Permission.objects.filter(
         content_type=employer_content_type)
-    employeeprofile_permissions = Permission.objects.filter(
-        content_type=employeeprofile_content_type)
 
     # Assign the permissions to the user
     for perm in employer_permissions:
-        user.user_permissions.add(perm)
-    for perm in employeeprofile_permissions:
         user.user_permissions.add(perm)

@@ -24,20 +24,12 @@ from core import views as core_views
 from core.views import CustomLoginView, CustomLogoutView
 from django.conf import settings
 
-
+# {Project Level URLs Configuration}
 urlpatterns = [
-    path('admin/', admin.site.urls),  # Admin site
+    path('admin/', admin.site.urls),
     path('core/', include('core.urls')),
-
-    # Conditional inclusion of employer URLs
-    path('employer/', include('employer.urls')
-         ) if settings.INCLUDE_EMPLOYER_APP else None,
-
-    # Authentication Views
-
     path('register/', core_views.register, name='register'),
-    path('accounts/login/', CustomLoginView.as_view(),
-         name='login'),
+    path('accounts/login/', CustomLoginView.as_view(), name='login'),
     path('accounts/logout/', CustomLogoutView.as_view(), name='logout'),
     path('accounts/password_change/', auth_views.PasswordChangeView.as_view(
         template_name='core/password_change_form.html'), name='password_change'),
@@ -56,14 +48,10 @@ urlpatterns = [
          name='account_activation_sent'),
     path('user_app_settings/', core_views.user_app_settings,
          name='user_app_settings'),
-    # ... other paths ...
-    # Include the default Django authentication URLs for good measure (includes 'logout')
     path('accounts/', include('django.contrib.auth.urls')),
 ]
 
-
-# Conditional inclusion of employer URLs (moved inside the above urlpatterns)
-# if settings.INCLUDE_EMPLOYER_APP:
-#    urlpatterns += [
-#        path('employer/', include('employer.urls')),
-#    ]
+# Conditional inclusion of employer URLs
+if settings.INCLUDE_EMPLOYER_APP:
+    urlpatterns += [path('employer/',
+                         include('employer.urls', namespace='employer'))]

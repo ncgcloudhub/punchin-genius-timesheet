@@ -44,17 +44,6 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
-def can_access_employee_dashboard(user):
-    return user.is_superuser or (user.is_authenticated and not user.is_employer)
-
-
-# checks whether the user is authenticated and is either a superuser (is_superuser) or has the is_employer attribute set to True.
-
-
-def can_access_employer_dashboard(user):
-    return user.is_authenticated and (user.is_superuser or user.is_employer)
-
-
 def account_activation_sent(request):
     # Render a template that informs the user that an activation email has been sent
     return render(request, 'core/account_activation_sent.html')
@@ -213,67 +202,6 @@ def dashboard_redirect(request):
 
 
 @login_required
-@transaction.atomic
-def apply_employer(request):
-    # Check if the user is already an employer or associated with an employer
-    if request.user.is_employer or (hasattr(request.user, 'employeeprofile') and request.user.employeeprofile.employer):
-        messages.info(
-            request, "You are already an employer or associated with an employer.")
-        return redirect('core:employee_dashboard')
-
-    if request.method == 'POST':
-        # When the form is submitted, make the user an employer and admin for the employer account
-        request.user.is_employer = True
-        request.user.save()
-        # Make the user a staff member and potentially part of the admin group
-        request.user.is_staff = True
-        admin_group, _ = Group.objects.get_or_create(name='EmployerAdmins')
-        request.user.groups.add(admin_group)
-        request.user.save()
-
-        # Create an EmployerProfile for this user if it doesn't exist
-        employer_profile, created = EmployerProfile.objects.get_or_create(
-            user=request.user)
-        if created:
-            # Optionally set additional fields on employer_profile
-            employer_profile.save()
-
-        messages.success(
-            request, "You have successfully applied to be an employer and are now the admin of the employer account.")
-        # Redirect to a page where the user can complete their employer profile details
-        return redirect('employer:register_employer_details')
-    else:
-        # If the method is GET, show a confirmation page to apply as an employer
-        return render(request, 'core/apply_employer.html')
-
-
-@login_required
-def join_employer(request):
-    if request.method == 'POST':
-        form = EmployeeLinkForm(request.POST)
-        if form.is_valid():
-            token = form.cleaned_data['invitation_token']
-            try:
-                invitation = Invitation.objects.get(
-                    token=token, is_accepted=False)
-                # Assuming EmployeeProfile and Invitation have the necessary fields
-                employee_profile, created = EmployeeProfile.objects.get_or_create(
-                    user=request.user)
-                employee_profile.employer = invitation.employer
-                employee_profile.save()
-                invitation.is_accepted = True
-                invitation.save()
-                messages.success(request, "Successfully joined the employer.")
-                return redirect('core:employee_dashboard')
-            except Invitation.DoesNotExist:
-                messages.error(request, "Invalid or expired invitation.")
-    else:
-        form = EmployeeLinkForm()
-
-    return render(request, 'core/join_employer.html', {'form': form})
-
-
-@login_required
 def list_time_entries(request):
     entries = TimeEntry.objects.filter(user=request.user)
     return render(request, "core/list_time_entries.html", {"entries": entries})
@@ -419,3 +347,95 @@ def accept_invitation(request):
     else:
         form = EmployeeLinkForm()
     return render(request, 'core/accept_invitation.html', {'form': form})
+
+
+def assign_employee_permissions(user):
+    # Get the content type for the EmployeeProfile model
+    employeeprofile_content_type = ContentType.objects.get(
+        app_label='core', model='employeeprofile')
+
+    # Get the permissions for the EmployeeProfile model
+    employeeprofile_permissions = Permission.objects.filter(
+        content_type=employeeprofile_content_type)
+
+    # Assign the permissions to the user
+    for perm in employeeprofile_permissions:
+        user.user_permissions.add(perm)
+
+
+'''
+
+def can_access_employee_dashboard(user):
+    return user.is_superuser or (user.is_authenticated and not user.is_employer)
+
+
+# checks whether the user is authenticated and is either a superuser (is_superuser) or has the is_employer attribute set to True.
+
+
+def can_access_employer_dashboard(user):
+    return user.is_authenticated and (user.is_superuser or user.is_employer)
+
+
+
+@login_required
+@transaction.atomic
+def apply_employer(request):
+    # Check if the user is already an employer or associated with an employer
+    if request.user.is_employer or (hasattr(request.user, 'employeeprofile') and request.user.employeeprofile.employer):
+        messages.info(
+            request, "You are already an employer or associated with an employer.")
+        return redirect('core:employee_dashboard')
+
+    if request.method == 'POST':
+        # When the form is submitted, make the user an employer and admin for the employer account
+        request.user.is_employer = True
+        request.user.save()
+        # Make the user a staff member and potentially part of the admin group
+        request.user.is_staff = True
+        admin_group, _ = Group.objects.get_or_create(name='EmployerAdmins')
+        request.user.groups.add(admin_group)
+        request.user.save()
+
+        # Create an EmployerProfile for this user if it doesn't exist
+        employer_profile, created = EmployerProfile.objects.get_or_create(
+            user=request.user)
+        if created:
+            # Optionally set additional fields on employer_profile
+            employer_profile.save()
+
+        messages.success(
+            request, "You have successfully applied to be an employer and are now the admin of the employer account.")
+        # Redirect to a page where the user can complete their employer profile details
+        return redirect('employer:register_employer_details')
+    else:
+        # If the method is GET, show a confirmation page to apply as an employer
+        return render(request, 'core/apply_employer.html')
+
+        
+
+        
+@login_required
+def join_employer(request):
+    if request.method == 'POST':
+        form = EmployeeLinkForm(request.POST)
+        if form.is_valid():
+            token = form.cleaned_data['invitation_token']
+            try:
+                invitation = Invitation.objects.get(
+                    token=token, is_accepted=False)
+                # Assuming EmployeeProfile and Invitation have the necessary fields
+                employee_profile, created = EmployeeProfile.objects.get_or_create(
+                    user=request.user)
+                employee_profile.employer = invitation.employer
+                employee_profile.save()
+                invitation.is_accepted = True
+                invitation.save()
+                messages.success(request, "Successfully joined the employer.")
+                return redirect('core:employee_dashboard')
+            except Invitation.DoesNotExist:
+                messages.error(request, "Invalid or expired invitation.")
+    else:
+        form = EmployeeLinkForm()
+
+    return render(request, 'core/join_employer.html', {'form': form})
+'''
