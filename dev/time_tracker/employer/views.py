@@ -140,43 +140,9 @@ class EmployerListView(ListView):
         return context
 
 
-'''
 @login_required
 @user_passes_test(can_access_employer_dashboard, login_url=LOGIN_URL)
 @permission_required('employer.can_view_employer_dashboard', raise_exception=True)
-def employer_dashboard(request):
-    try:
-        if request.user.is_superuser:
-            logger.info("User is a superuser")
-            return handle_superuser(request)
-        elif hasattr(request.user, 'employeeprofile'):
-            if request.user.employeeprofile.employer is not None:
-                logger.info(
-                    "User has an employeeprofile associated with an employer")
-                return handle_regular_user(request)
-            else:
-                logger.info(
-                    "User has an employeeprofile but it is not associated with an employer")
-                # Automatically associate the user with the employer
-                employer = Employer.objects.get(user=request.user)
-                request.user.employeeprofile.employer = employer
-                request.user.employeeprofile.save()
-                return handle_regular_user(request)
-        else:
-            logger.info(
-                "User is not a superuser and does not have an employeeprofile")
-            raise PermissionDenied("You are not allowed to view this page.")
-    except PermissionDenied as e:
-        # Log the exception
-        logger.error("Permission denied: %s", e)
-        # Handle the PermissionDenied exception, e.g., return an error page or redirect to a custom error page.
-        return render(request, 'employer/access_denied.html')
-'''
-
-
-@login_required
-# @user_passes_test(can_access_employer_dashboard, login_url=LOGIN_URL)
-# @permission_required('employer.can_view_employer_dashboard', raise_exception=True)
 def employer_dashboard(request):
     try:
         if request.user.is_superuser:
@@ -267,44 +233,6 @@ def register_employer(request):
     else:
         form = EmployerRegistrationForm()
     return render(request, 'employer/register_employer.html', {'form': form})
-
-
-# commenting to test the employer profile creation.
-'''
-def register_employer(request):
-    if request.method == 'POST':
-        form = EmployerRegistrationForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email'].strip().lower()
-            password = form.cleaned_data['password']
-            employer_name = form.cleaned_data['employer_name']
-            if User.objects.filter(email__iexact=email).exists():
-                messages.error(
-                    request, 'An account with this email already exists.')
-                logger.warning(
-                    f"Attempt to register with existing email: {email}")
-            else:
-                try:
-                    with transaction.atomic():
-                        user = User.objects.create_user(
-                            email=email, password=password, is_employer=True, is_active=False)
-                        # Get the Employer and EmployerProfile instances
-                        employer, employer_profile = form.save()
-                        send_activation_email(user, employer_profile)
-                        messages.success(
-                            request, 'Registration successful! Please check your email to activate your account.')
-                        return redirect('employer:account_activation_sent')
-                except Exception as e:
-                    logger.error(f"Unexpected error during registration: {e}")
-                    messages.error(
-                        request, 'An unexpected error occurred. Please try again.')
-        else:
-            logger.error(f"Form validation errors: {form.errors}")
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        form = EmployerRegistrationForm()
-    return render(request, 'employer/register_employer.html', {'form': form})
-'''
 
 
 def account_activation_sent(request):

@@ -21,7 +21,10 @@
         {% if user|can_access_employer_dashboard %}
         <a href="{% url 'employer:employer_dashboard' %}" class="btn btn-primary">Employer Dashboard</a>
         {% endif %}
-        <a href="{% url 'logout' %}" class="btn btn-danger">Log Out</a>
+        <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Logout</button>
+        </form>
     </div>
     {% else %}
     <p>Please <a href="{% url 'login' %}">login</a> to access the employee dashboard.</p>

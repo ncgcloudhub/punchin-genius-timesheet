@@ -24,7 +24,7 @@ from core import views as core_views
 from core.views import CustomLoginView, CustomLogoutView
 from django.conf import settings
 
-
+# {Project Level URLs Configuration}
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('core/', include('core.urls')),
